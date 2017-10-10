@@ -1,0 +1,27 @@
+OrgGroupHasPrivilege:
+    type: entity
+    table: org_group_has_privilege
+    indexes:
+        fk_org_group_has_privilege_org_group1_idx:
+            columns:
+                - org_group_id
+    id:
+        orgPrivilegeCode:
+            type: string
+            nullable: false
+            length: 20
+            fixed: false
+            comment: ''
+            id: true
+            column: org_privilege_code
+    oneToOne:
+        orgGroup:
+            targetEntity: OrgGroup
+            cascade: {  }
+            mappedBy: null
+            inversedBy: null
+            joinColumns:
+                org_group_id:
+                    referencedColumnName: id
+            orphanRemoval: false
+    lifecycleCallbacks: {  }

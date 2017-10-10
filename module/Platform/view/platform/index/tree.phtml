@@ -1,0 +1,194 @@
+
+                <div class="row">
+                    <div class="col-md-7">
+                   
+                    <?php if(isset($this->request['parentId'])){  
+                    
+                        if($this->tree['parent_id'] == 0){
+                            $backUrl = '/platform/index/tree';
+                        }else{ 
+                            $backUrl = '/platform/index/tree?parentId='.$this->tree['parent_id'];
+                        }    
+                    ?>
+                    <h3>
+                    <a href="<?php echo $backUrl;?>" >返回上级导航</a>
+                    <?php  echo "父级菜单[ {$this->tree['title']} ] 链接".'   '.$this->tree['url']."</h3>"; }else{ ?>
+                    <h3>
+                    	<?php
+                    	$url='/platform/index/tree';
+                    	echo  '菜单列表';?>
+                    </h3>
+                    <?php }?>
+                   
+                        <div class="cl-sidebar">
+                        		<div class="row" style="background-color: #EEEEEE">
+                        			 <div class="col-md-3"><strong>导航名称</strong></div>
+                        			 <div class="col-md-3">导航 URL</div>
+                                     <div class="col-md-2">排序</div>
+                        			 <div class="col-md-3">操作</div>
+                        		</div>
+                        		<?php  if(!empty($this->data)){
+                        						foreach($this->data as $item){?>
+											<div class="row" style="background-color: #CCEEEF;margin-top:5px">
+<div class="col-md-3  title" ><?php echo $item['title'];?></div>
+<div class="col-md-3 url"><?php echo $item['url'];?></div>
+<div class="col-md-2 order"><?php echo $item['order'];?></div>
+<div class="col-md-4" data-id="<?php echo $item['id'];?>">
+<input type="hidden" value='<?php echo $item['parent_id'];?>'  class="pid" />
+<button type="button" class="btn btn-default create" title="创建"><span class="glyphicon glyphicon-plus"></span></button>
+<button type="button" class="btn btn-default edit" title="编辑"><span class="glyphicon glyphicon-edit"></span></button>    
+<button type="button" class="btn btn-default  remove" title="清除"><span class="glyphicon glyphicon-remove"></span></button>
+<button type="button" class="btn btn-default  enter" title="子目录"><span class="glyphicon glyphicon-log-in"></span></button></div>
+</div>
+                        	<?php } ?>
+                        		<ul class="pagination">
+								  <li><a href="<?echo $url;?>page=1">&laquo;</a></li>
+								  <?php 
+								   $page=$this->num/$this->limit;
+								  if($page > intval($page))
+								 	 $page=intval($page)+1;
+								  else
+								    $page=intval($page);
+								  
+								  for($i=1;$i<=$page;$i++){
+									echo "<li ";
+									if($i==$this->request['page']) echo 'class="active"';
+									echo '><a href="'.$url.'?page='.$i.'">'.$i.'</a></li>';
+								}
+								echo '<li><a href="'.$url.'?page='.$page.'">&raquo;</a></li>';
+								?>
+								
+								</ul>
+                        		<?php }?>
+                        		
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+							<div class="container">
+									<div class="container">
+ <form class="form-signin">
+        <h2 class="form-signin-heading" id='edit_title'>创建</h2>
+        <input type="hidden" value='ins<?php echo $_REQUEST['parentId'];?>'  id="postId" />
+        <input type="text"  id="title" size="200" class="form-control" placeholder="导航名称" required autofocus >
+        <input type="text" id="url"   size="200"  class="form-control"  placeholder="导航 URL" />
+        <input type="text" id="order"   size="200"  class="form-control"  placeholder="排序（只能是数字）" />
+<!--	<input type="text" id="classname"   size="50"  class="form-control"  placeholder="类名称（用于菜单图标显示）" />  -->
+        <button class="btn btn-lg btn-primary btn-block" type="button" id="sb">提交</button>
+      </form>
+     
+
+    </div>
+							</div>
+                    </div>
+                </div>
+<script>
+/**
+ * 添加导航
+ */
+function createTree(e)
+{   
+    var parentId;
+    if($('#postId').val() == 'ins'){
+      parentId = 'ins0';
+    }else{        
+      parentId = $('#postId').val();
+    }
+
+    $.ajax({
+        url: '/platform/index/createTree',
+        type: 'POST',
+        data: {
+            title: $('#title').val(),
+           	url:$('#url').val(),
+           	parent_id:parentId,
+            order:$('#order').val(),
+	    classname:$('#classname').val(),
+        }
+    }).done(function(msg){
+        if (msg.status == 0) {
+            $(e.target).triggerHandler('success');
+            location.reload() 
+        } else {
+            $(e.target).triggerHandler('error');
+            alert('失败');
+        }
+    });
+}
+
+
+function remove(e)
+{
+     
+    $.ajax({
+        url: '/platform/index/deleteTree',
+        type: 'POST',
+        data: {
+ 			id:$(e.target).parent().attr('data-id')           
+        }
+    }).done(function(msg){
+   	 if (msg.status == 0) {
+         $(e.target).triggerHandler('success');
+         location.reload() 
+     } else if(msg.status == 500){
+         $(e.target).triggerHandler('error');
+         alert('该分类具有子分类，不能清除！')
+     }else {
+         $(e.target).triggerHandler('error');
+         alert('失败');
+     }
+    });
+}
+
+function setCreate(e){
+    
+    var pid=$('.pid').val();
+    
+    $('#edit_title').text('创建');
+	$('#postId').val('ins'+pid);
+	$('#title').val('');
+	$('#url').val('');
+	$('#classname').val('');
+    $('#order').val('');
+}
+
+function setEdit(e){
+    
+	var sid=$(e.target).parent().attr('data-id');
+  
+	$('#title').val($(e.target).parent().parent().children('.title').text());
+	$('#url').val($(e.target).parent().parent().children('.url').text());
+    $('#order').val($(e.target).parent().parent().children('.order').text());
+    $('#classname').val($(e.target).parent().parent().children('.classname').text());
+	$('#edit_title').text('编辑导航');
+	$('#postId').val(sid);
+}
+
+function enter(e){
+	var sid=$(e.target).parent().attr('data-id');
+    
+	var url='/platform/index/tree?parentId='+sid;
+
+	location.href =url;
+}
+
+$(document).ready(function(){
+    $('.create').each(function(){
+        $(this).bind('click', setCreate);
+    });
+
+    $('.edit').each(function(){
+        $(this).bind('click', setEdit);
+    });
+
+    $('.remove').each(function(){
+        $(this).bind('click', remove);
+    });
+
+    $('.enter').each(function(){
+        $(this).bind('click', enter);
+    });
+
+    $('#sb').bind('click',createTree);
+	
+});
+</script>

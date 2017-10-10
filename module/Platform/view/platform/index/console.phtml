@@ -1,0 +1,300 @@
+<?php
+
+if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW']) ||
+    $_SERVER['PHP_AUTH_USER'] != ADMIN_USERNAME ||$_SERVER['PHP_AUTH_PW'] != ADMIN_PASSWORD) {
+    Header("WWW-Authenticate: Basic realm=\" Login\"");
+    Header("HTTP/1.0 401 Unauthorized");
+
+    echo <<<EOB
+				<html><body>
+				<h1>Rejected!</h1>
+				<big>Wrong Username or Password!</big>
+				</body></html>
+EOB;
+    exit;
+}
+?>
+
+<?php use Zend\Form\Element; ?>
+                <div class="row">
+                    <div class="col-md-10">
+                    <h2> <a href="/platform/index/console?type=0" >脚本列表</a>  |  <a href="/platform/index/console?type=1" >队列列表</a>
+
+                    </h2>
+                        <div class="cl-sidebar">
+                        		<div class="row" style="background-color: #EEEEEE">
+                        			 <div class="col-md-2"><strong>说明</strong></div>
+                        			 <div class="col-md-3">脚本名</div>
+                        			 <div class="col-md-1">队列否</div>
+                                    <div class="col-md-2">定时</div>
+                                    <div class="col-md-1">状态</div>
+
+                        			 <div class="col-md-2">操作</div>
+                        		</div>
+                        		<?php
+
+                                $is =array('否','是');
+
+                        		 if(!empty($this->data)){
+                        						foreach($this->data as $item){?>
+											<div class="row" style="background-color: #CCEEEF;margin-top:5px">
+<div class="col-md-2 info" ><?php echo $item['info'];?></div>
+<div class="col-md-3  job_name"><?php echo $item['job_name'];?></div>
+<div class="col-md-1 type"><?php echo $is[$item['is_queue']];?></div>
+<div class="col-md-2 cron"><?php echo $item['cron'];?></div>
+<div class="col-md-1 status">获取中</div>
+<div class="col-md-2 oper" data-id="<?php echo $item['id'];?>"  data-is_queue="<?php echo $item['is_queue']; ?>"
+     data-controller="<?php echo $item['controller']; ?>"  data-action="<?php echo $item['action']; ?>">
+<button type="button" class="btn btn-default create" ><span class="glyphicon glyphicon-plus"></span></button>
+<button type="button" class="btn btn-default edit" ><span class="glyphicon glyphicon-edit"></span></button>
+<button type="button" class="btn btn-default  remove" ><span class="glyphicon glyphicon-remove"></span></button>
+<button type="button" class="btn btn-default  enter" ><span class="glyphicon glyphicon-log-in"></span></button>
+<button type="button" class="btn btn-default addcron" ><span class="glyphicon glyphicon-plus-sign"></span></button>
+<button type="button" class="btn btn-default  start" ><span class="glyphicon glyphicon-play"></span></button>
+<button type="button" class="btn btn-default  stop" ><span class="glyphicon glyphicon-stop"></span></button></div>
+</div>
+                        	<?php }
+                                 }?>
+
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+
+ <form class="form-signin">
+        <h2 class="form-signin-heading" id='edit_title'>创建</h2>
+        <input type="hidden" value=''  id="console_id"/>
+        <input type="hidden" value='<?php echo $this->request['moduleId'];?>'  id="module_id"/>
+        <input type="text"  id="info" size="200" class="form-control" placeholder="说明" required autofocus>
+        <input type="text" id="job_name"   size="200"  class="form-control"  placeholder="脚本名"  required autofocus>
+     <input type="text" id="controller"   size="200"  class="form-control"  placeholder='controller'  required autofocus>
+     <input type="text" id="action"   size="200"  class="form-control"  placeholder='action'  required autofocus>
+       是否队列:<?php
+
+     $element = new Element\Select('is_queue');
+     $element->setValueOptions($is)->setAttribute('id', 'is_queue');
+     echo $this->formSelect($element);
+     ?>
+
+     <input type="text" id="cron"   size="200"  class="form-control"  placeholder="设定时间">
+     <button class="btn btn-lg btn-primary btn-block" type="button" id="sb">提交</button>
+     </form>
+
+
+    </div>
+							</div>
+
+<script>
+
+/**
+ * 添加机构
+ */
+function create(e)
+{
+    $.ajax({
+        url: '/platform/index/createconsole',
+        type: 'POST',
+        data: {
+            info:$('#info').val(),
+            job_name:$('#job_name').val(),
+            controller:$('#controller').val(),
+            action:$('#action').val(),
+            is_queue:$('#is_queue').val(),
+            cron:$('#cron').val(),
+            id:$('#console_id').val()
+        }
+    }).done(function(msg){
+        if (msg.status == 0) {
+            $(e.target).triggerHandler('success');
+            location.reload()
+        } else {
+            $(e.target).triggerHandler('error');
+            alert('失败');
+        }
+    });
+}
+
+
+function remove(e)
+{
+    var truthBeTold = window.confirm("是否确认删除");
+    if (truthBeTold) {
+    $.ajax({
+        url: '/platform/index/deleteconsole',
+        type: 'POST',
+        data: {
+ 			id:$(e.target).parent().attr('data-id')
+        }
+    }).done(function(msg){
+   	 if (msg.status == 0) {
+         $(e.target).triggerHandler('success');
+         location.reload()
+     } else {
+         $(e.target).triggerHandler('error');
+         alert('失败');
+     }
+    });
+    }
+}
+
+function setCreate(e){
+	$('#edit_title').text('创建');
+	$('#console_id').val('');
+	$('#info').val('');
+	$('#job_name').val('');
+	$('#controller').val('');
+    $('#action').val('');
+    $('#cron').val('');
+}
+
+function setEdit(e){
+        var sid=$(e.target).parent().attr('data-id');
+        var type_id = $(e.target).parent().attr('data-type-id');
+    var is_queue = $(e.target).parent().attr('data-is_queue');
+    var controller = $(e.target).parent().attr('data-controller');
+    var action  = $(e.target).parent().attr('data-action');
+    $('#info').val($(e.target).parent().parent().children('.info').text());
+
+	$('#job_name').val($(e.target).parent().parent().children('.job_name').text());
+	$('#controller').val( controller );
+    $('#action').val( action );
+    $('#cron').val($(e.target).parent().parent().children('.cron').text());
+    // remove all selected status
+    $('#is_queue').removeAttr('selected');
+
+	$('#type option[value=' + is_queue + ']').prop('selected', true);
+
+    $('#edit_title').text('编辑console');
+	$('#console_id').val(sid);
+}
+
+function enter(e){
+    var controller = $(e.target).parent().attr('data-controller');
+    var action  = $(e.target).parent().attr('data-action');
+	location.href ='/platform/index/consolelog?controller='+controller+'&action='+action;
+}
+
+function addcron(e){
+    var name = $(e.target).parent().parent().children('.job_name').text();
+    var is_queue = $(e.target).parent().attr('data-is_queue');
+
+    name = $(e.target).parent().parent().children('.cron').text()+','+name;
+
+    $.ajax({
+        url: '/platform/index/startconsole',
+        type: 'POST',
+        data: {
+            name:name,
+            is_queue:is_queue
+        }
+    }).done(function(msg){
+            //alert(msg.status);
+            location.reload()
+        });
+}
+
+
+function start(e){
+    var name = $(e.target).parent().parent().children('.job_name').text();
+
+    $.ajax({
+        url: '/platform/index/startconsole',
+        type: 'POST',
+        data: {
+            name:name,
+            is_queue:1
+        }
+    }).done(function(msg){
+            //alert(msg.status);
+            location.reload()
+        });
+}
+
+function stop(e){
+    $.ajax({
+        url: '/platform/index/stopconsole',
+        type: 'POST',
+        data: {
+            name: $(e.target).parent().parent().children('.job_name').text(),
+            is_queue:$(e.target).parent().attr('data-is_queue')
+        }
+    }).done(function(msg){
+            //alert(msg.status);
+            location.reload()
+        });
+}
+
+$(function(){
+
+    $('.create').each(function(){
+        $(this).bind('click', setCreate);
+    });
+
+    $('.edit').each(function(){
+        $(this).bind('click', setEdit);
+    });
+
+    $('.remove').each(function(){
+        $(this).bind('click', remove);
+    });
+
+    $('.enter').each(function(){
+        $(this).bind('click', enter);
+    });
+    $('.start').each(function(){
+        $(this).bind('click', start);
+    });
+    $('.stop').each(function(){
+        $(this).bind('click', stop);
+    });
+
+    $('.addcron').each(function(){
+        $(this).bind('click', addcron);
+    });
+
+    $('.status').each(function(){
+        //监测每行状态
+        var name = $(this).parent().children('.job_name').text();
+        var is_queue = $(this).parent().children('.oper').attr('data-is_queue');
+        var par = $(this).parent();
+        if(is_queue==1){
+            $(this).parent().find('.addcron').hide();
+        }
+        $.ajax({
+            url: '/platform/index/checkconsole',
+            type: 'GET',
+            data: {
+                name: name,
+                is_queue:is_queue
+            }
+        }).done(function(msg){
+                var s ='';
+                if (msg.status == 1) {
+                    if(is_queue==1){
+                        par.find('.start').hide();
+                        s= '运行中';
+                    }
+                    else{
+                        par.find('.addcron').hide();
+                        s = '已设置';
+                    }
+
+                    par.children('.status').text(s);
+
+                } else {
+                    if(is_queue==1){
+                        s= '未运行';
+                    }
+                    else{
+                        s = '未设置';
+                    }
+                    par.children('.status').text(s);
+
+                    par.find('.stop').hide();
+                }
+            });
+    });
+
+    $('#sb').bind('click',create);
+
+});
+</script>

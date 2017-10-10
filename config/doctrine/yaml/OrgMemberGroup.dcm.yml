@@ -1,0 +1,44 @@
+OrgMemberGroup:
+    type: entity
+    table: org_member_group
+    indexes:
+        fk_org_user_group_org1_idx:
+            columns:
+                - passport_id
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: true
+            comment: ''
+            id: true
+            generator:
+                strategy: IDENTITY
+    fields:
+        name:
+            type: string
+            nullable: false
+            length: 45
+            fixed: false
+            comment: ''
+        type:
+            type: boolean
+            nullable: false
+            comment: "分组类型\n0 - 前台\n1 - 后台\n2 - 前后台"
+        intro:
+            type: text
+            nullable: false
+            length: null
+            fixed: false
+            comment: 描述
+    manyToOne:
+        passport:
+            targetEntity: Org
+            cascade: {  }
+            mappedBy: null
+            inversedBy: null
+            joinColumns:
+                passport_id:
+                    referencedColumnName: passport_id
+            orphanRemoval: false
+    lifecycleCallbacks: {  }

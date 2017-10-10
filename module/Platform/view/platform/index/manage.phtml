@@ -1,0 +1,173 @@
+<?php
+
+if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW']) ||
+    $_SERVER['PHP_AUTH_USER'] != ADMIN_USERNAME ||$_SERVER['PHP_AUTH_PW'] != ADMIN_PASSWORD) {
+    Header("WWW-Authenticate: Basic realm=\" Login\"");
+    Header("HTTP/1.0 401 Unauthorized");
+
+    echo <<<EOB
+				<html><body>
+				<h1>Rejected!</h1>
+				<big>Wrong Username or Password!</big>
+				</body></html>
+EOB;
+    exit;
+}
+?>
+                <div class="row">
+                    <div class="col-md-7">
+                    <h2>
+                    	<?php
+                    	$url='/platform/index/manage';
+                    	echo  '模块列表';?>
+                        | <a href="/platform/index/cache" >缓存列表</a>
+                    </h2>
+                        <div class="cl-sidebar">
+                        		<div class="row" style="background-color: #EEEEEE">
+                        			 <div class="col-md-3"><strong>模块名称</strong></div>
+                        			 <div class="col-md-5">模块说明</div>
+                        			 <div class="col-md-3">操作</div>
+                        		</div>
+                        		<?php  if(!empty($this->data)){
+                        						foreach($this->data as $item){?>
+											<div class="row" style="background-color: #CCEEEF;margin-top:5px">
+<div class="col-md-3  module" ><?php echo $item['module'];?></div>
+<div class="col-md-5 intro"><?php echo $item['intro'];?></div>
+<div class="col-md-4" data-id="<?php echo $item['id'];?>">
+<button type="button" class="btn btn-default create" ><span class="glyphicon glyphicon-plus"></span></button>
+<button type="button" class="btn btn-default edit" ><span class="glyphicon glyphicon-edit"></span></button>    
+<button type="button" class="btn btn-default  remove" ><span class="glyphicon glyphicon-remove"></span></button>
+<button type="button" class="btn btn-default  enter" ><span class="glyphicon glyphicon-log-in"></span></button></div>
+</div>
+                        	<?php } ?>
+                        		<ul class="pagination">
+								  <li><a href="<?echo $url;?>page=1">&laquo;</a></li>
+								  <?php 
+								   $page=$this->num/100;
+								  if($page > intval($page))
+								 	 $page=intval($page)+1;
+								  else
+								    $page=intval($page);
+								  
+								  for($i=1;$i<=$page;$i++){
+									echo "<li ";
+									if($i==$this->request['page']) echo 'class="active"';
+									echo '><a href="'.$url.'?page='.$i.'">'.$i.'</a></li>';
+								}
+								echo '<li><a href="'.$url.'?page='.$page.'">&raquo;</a></li>';
+								?>
+								
+								</ul>
+                        		<?php }?>
+                        		
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+							<div class="container">
+									<div class="container">
+ <form class="form-signin">
+        <h2 class="form-signin-heading" id='edit_title'>创建</h2>
+        <input type="hidden" value=''  id="postId"/>
+        <input type="text"  id="f_name" size="200" class="form-control" placeholder="模块名称" required autofocus>
+        <input type="text" id="f_intro"   size="200"  class="form-control"  placeholder="模块说明" >
+        <button class="btn btn-lg btn-primary btn-block" type="button" id="sb">提交</button>
+      </form>
+     
+
+    </div>
+							</div>
+                    </div>
+                </div>
+<script>
+
+/**
+ * 添加机构
+ */
+function createModule(e)
+{
+    $.ajax({
+        url: '/platform/index/createmodule',
+        type: 'POST',
+        data: {
+            module: $('#f_name').val(),
+           	intro:$('#f_intro').val(),
+           	id:$('#postId').val(),
+        }
+    }).done(function(msg){
+        if (msg.status == 0) {
+            $(e.target).triggerHandler('success');
+            location.reload() 
+        } else {
+            $(e.target).triggerHandler('error');
+            alert('失败');
+        }
+    });
+}
+
+
+function remove(e)
+{
+    var truthBeTold = window.confirm("是否确认删除");
+    if (truthBeTold) {
+    $.ajax({
+        url: '/platform/index/deletemodule',
+        type: 'POST',
+        data: {
+ 			id:$(e.target).parent().attr('data-id')           
+        }
+    }).done(function(msg){
+   	 if (msg.status == 0) {
+         $(e.target).triggerHandler('success');
+         location.reload() 
+     } else {
+         $(e.target).triggerHandler('error');
+         alert('失败');
+     }
+    });
+    }
+}
+
+function setCreate(e){
+	$('#edit_title').text('创建');
+	$('#postId').val('');
+	$('#f_name').val('');
+	$('#f_intro').val('');
+}
+
+function setEdit(e){
+	var sid=$(e.target).parent().attr('data-id');
+	$('#f_name').val($(e.target).parent().parent().children('.module').text());
+	$('#f_intro').val($(e.target).parent().parent().children('.intro').text());
+	$('#edit_title').text('编辑模块');
+	$('#postId').val(sid);
+}
+
+function enter(e){
+	var sid=$(e.target).parent().attr('data-id');
+
+	var url='/platform/index/api?moduleId='+sid;
+
+	location.href =url;
+}
+
+$(document).ready(function(){
+    $('.create').each(function(){
+        $(this).bind('click', setCreate);
+    });
+
+    $('.edit').each(function(){
+        $(this).bind('click', setEdit);
+    });
+
+    $('.remove').each(function(){
+        $(this).bind('click', remove);
+    });
+
+    $('.enter').each(function(){
+        $(this).bind('click', enter);
+    });
+
+    $('#sb').bind('click',createModule);
+	
+});
+</script>

@@ -1,0 +1,168 @@
+<div class="row">
+                    <div class="col-md-12">
+                    <h2> <a href="/platform/index/manage" >返回模块列表</a> | <a  target = "_blank"  href="/memcache.php">memcache监控</a>01
+                     |  缓存时间:<?php
+                        use Zend\Form\Element;
+                        $cacheTime = array(''=>'全部', 0=>'永久有效',15*60=>'15分钟',3600=>'1小时',3600*12=>'半天',3600*24=>'1天');
+
+                        $element =  new Element\Select('cache_time');
+                        $element->setValueOptions($cacheTime)->setAttribute('id', 'cache_time')->setValue($param['cache_time']);
+                        echo $this->formSelect($element);
+                        ?>
+                        存储类型:<?php
+                        $element =  new Element\Select('is_list_cache');
+                        $element->setValueOptions(array('单值存储','列表存储'))->setAttribute('id', 'is_list_cache')->setValue($param['is_list_cache']);
+                        echo $this->formSelect($element);
+                        ?>
+                    </h2>
+                        <div class="cl-sidebar">
+                        		<div class="row" style="background-color: #EEEEEE">
+                        			 <div class="col-md-2"><strong>API名称</strong></div>
+                        			 <div class="col-md-2">API URL</div>
+                        			 <div class="col-md-1">类型</div>
+                                    <div class="col-md-1">缓存否</div>
+                                    <div class="col-md-1">列表否</div>
+                                    <div class="col-md-2">缓存名</div>
+                                    <div class="col-md-1">cacheTime</div>
+                        			 <div class="col-md-2">操作</div>
+                        		</div>
+                        		<?php 
+                        		$moduleType=array(
+                        				'0' => 'GET',
+                        				'1' => 'POST',
+                        				'2' => 'PUT',
+                        				'3' => 'DELETE'
+                        		);
+                                $is =array('否','是');
+                        		 
+                        		 if(!empty($this->data)){
+                        						foreach($this->data as $item){?>
+											<div class="row" style="background-color: #CCEEEF;margin-top:5px">
+<div class="col-md-2 name" ><?php echo $item['name'];?></div>
+<div class="col-md-2  route"><?php echo $item['route'];?></div>
+<div class="col-md-1 type"><?php echo $moduleType[$item['type']];?></div>
+<div class="col-md-1 type"><?php echo $is[$item['is_cache']];?></div>
+<div class="col-md-1 type"><?php echo $is[$item['is_list_cache']];?></div>
+<div class="col-md-2 cache_name"><?php echo $item['cache_name'];?></div>
+ <div class="col-md-1 cache_time"><?php
+     $cacheTime = array(15*60=>'15分钟',3600=>'1小时',3600*12=>'半天',3600*24=>'1天',0=>'永久有效');
+
+     if($item['is_cache']){
+         echo $cacheTime[$item['cache_time']];
+    }
+    ?></div>
+<div class="col-md-2" data-id="<?php echo $item['cache_name']?$item['cache_name']:$item['route'];?>">
+<a href="<?php echo $url='/platform/index/api?moduleId='.$item['module_id'];?>"><span class="glyphicon glyphicon-edit"></span></a>
+
+<?php if($item['is_list_cache']){?>
+列表缓存清空: <button type="button" class="btn btn-default  removelist" ><span class="glyphicon glyphicon-remove"></span></button>
+<?php }
+else{ ?>
+ 单个缓存清空:</br >
+ key<input id ="<?php echo $item['cache_name'];?>" type="text" size="8" > <button type="button" class="btn btn-default  remove" ></br>
+        <span class="glyphicon glyphicon-remove"></span></button>
+
+<?php
+}
+                                                        ?>
+</div>
+</div>
+                        	<?php } ?>
+                        		<ul class="pagination">
+								  <li><a href="<?php echo $url;?>page=1">&laquo;</a></li>
+								  <?php 
+								  $page=$this->num/100;
+								  if($page > intval($page))
+								 	 $page=intval($page)+1;
+								  else
+								    $page=intval($page);
+								  for($i=1;$i<=$page;$i++){
+									echo "<li ";
+									if($i==$this->request['page']) echo 'class="active"';
+									echo '><a href="'.$url.'page='.$i.'">'.$i.'</a></li>';
+								}
+								echo '<li><a href="'.$url.'page='.$page.'">&raquo;</a></li>';
+								?>
+								
+								</ul>
+                        		<?php }?>
+                        		
+                        </div>
+                    </div>
+</div>
+
+<script>
+    function redirect(){
+        location.href = '/platform/index/cache?cache_time='+$('#cache_time').val()+'&is_list_cache='+$('#is_list_cache').val();
+    }
+
+    function remove(e)
+    {
+        var truthBeTold = window.confirm("是否确认清空缓存");
+        if (truthBeTold) {
+            var n = $(e.target).parent().attr('data-id');
+            var value = $('#'+n).val();
+
+            if(value==''){
+                alert('请输入key');
+                return false;
+            }
+
+            $.ajax({
+                url: '/platform/index/deletecache',
+                type: 'POST',
+                data: {
+                    name:n+'_'+value
+                }
+            }).done(function(msg){
+                    if (msg.status == 0) {
+                        $('#'+n).val('');
+                        alert('清除成功');
+                        $(e.target).triggerHandler('success');
+                        location.reload()
+                    } else {
+                        $(e.target).triggerHandler('error');
+                        alert(msg.errmsg);
+                    }
+                });
+        }
+    }
+
+
+    function removelist(e)
+    {
+        var truthBeTold = window.confirm("是否确认清空缓存");
+        if (truthBeTold) {
+            $.ajax({
+                url: '/platform/index/deletecache',
+                type: 'POST',
+                data: {
+                    name:$(e.target).parent().attr('data-id')
+                }
+            }).done(function(msg){
+                    if (msg.status == 0) {
+                        $(e.target).triggerHandler('success');
+                        location.reload()
+                    } else {
+                        $(e.target).triggerHandler('error');
+                        alert(msg.errmsg);
+                    }
+                });
+        }
+    }
+
+    $('#cache_time').change(function (){redirect()});
+
+    $('#is_list_cache').change(function (){redirect()});
+    $(function(){
+        $('.remove').each(function(){
+            $(this).bind('click', remove);
+        });
+
+        $('.removelist').each(function(){
+            $(this).bind('click', removelist);
+        });
+
+    });
+
+</script>

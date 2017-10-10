@@ -1,0 +1,241 @@
+		   <div class="row">
+                    <div class="col-md-5">
+                        <div class="cl-sidebar">
+                            <div class="row">
+                                        当前使用API
+                                        <input value ="<?php echo $apihost;?>" id="apihost">
+                                        <button id="changeapi">变更API</button>如果使用自己本地API，请设置完后与运维联系在服务器绑定你的域名或直接通过IP请求
+                                请求平台<input value ="<?php echo $platform;?>" id="platform">
+                                <button id="changeplatform">变更请求平台 ，默认是test</button>
+                                <input value ="<?php echo $op;?>" id="op">
+                                <button id="changeop">变更操作人ID</button>
+
+                            </div>
+                        <div class="row">
+                        <div class="col-md-10" style="margin-top: 10px"><h3>选择模块</h3></div><div class="col-md-10">
+<?php use Zend\Form\Element;
+$element = new Element\Select('module');
+$element->setValueOptions($this->module)->setAttribute('id', 'module')->setAttribute('value',$this->request['module']);
+echo $this->formSelect($element);
+?>
+</div></div><div class="row">
+ <div class="col-md-10"  style="margin-top: 10px"><h3>选择API</h3></div><div class="col-md-10">
+<?php 
+$element = new Element\Select('api');
+$element->setValueOptions($this->api)->setAttribute('id', 'api')->setAttribute('value',$this->request['api']);
+echo $this->formSelect($element);
+?></div><hr/>
+</div>
+
+ <?php
+ $moduleType=array(
+ 		'0' => 'GET',
+ 		'1' => 'POST',
+ 		'2' => 'PUT',
+ 		'3' => 'DELETE'
+ );
+ $field=$requiredField=array();
+ if($this->request['api']){
+ echo '<div class="col-md-10" style="margin-top: 5px"><a target="_blank"  href="/platform/index/param?apiId='.$this->currentApi['id'].'">编辑参数</a></div>';
+echo '<div class="col-md-10" style="margin-top: 5px"><strong>请求路由：</strong><em id="api_route">'.$this->currentApi['route'].'</em></div>';
+echo '<div class="col-md-10" style="margin-top: 5px"><strong>请求方式：</strong><em id="api_request_type">'.$moduleType[$this->currentApi['type']].'</em></div>';
+ }
+ if(!empty($this->param)){
+     echo '<div class="col-md-10" style="margin-top: 5px"><a target="_blank"  href="/platform/index/staticdetail?route='.$this->currentApi['route'].'&method='.strtolower($moduleType[$this->currentApi['type']]).'">查看该API调用历史</a></div>';
+     echo  '<div class="col-md-10" style="margin-top: 5px"><strong>请求参数</strong></div><button id ="getparam" onclick="get_param()">获取该API最新一次的请求参数</button>';
+
+ foreach($this->param as $item){
+	$field[]=$item['name']; 
+ $empty='';
+  $required='required=""';
+  if(!$item['can_empty']) { 
+		$required="required='required'";
+		$empty='<strong style="color:red">*</strong>';	
+		$requiredField[]=$item['name'];
+   }
+   else{
+    //设置该值不传
+       $empty='<br/>不提交该参数:<input name="not_pass" type="checkbox" value="'.$item['name'].'"></input>';
+    }
+  echo '<div class="col-md-10" style="margin-top: 5px">[ <strong>'. $item['name'].'</strong>]
+     :<input id="'.$item['name'].'"  '.$required.'  type="text"  value="" />'.$empty.
+    '<br/>描述：'.$item['intro'] .'</div>';
+  
+}
+ }
+echo ' <div class="col-md-10" style="margin-top: 10px"><button class="btn btn-lg btn-primary btn-block" type="button" id="sb">提交</button></div>';
+
+?>
+
+                        </div>
+                    </div>
+                 
+                    <div class="col-md-7">
+
+                			
+								<div>请求URL:</div><div class="span8"  id="response_url"></div>
+                        <div>总耗时:</div><div class="span8"  id="api_time"></div>
+                        <div><b>执行sql:<span id="sql_time"></span></b></div><div class="span8"  id="sql"></div>
+                        <div><b>执行mongo:</b><span id="mongo_time"></span></div><div class="span8"  id="mongo"></div>
+						<div><b>执行solr:</b><span id="solr_time"></span></div><div class="span8"  id="solr"></div>
+							<hr/>
+							
+								<h3>返回数据</h3>
+								<div   id="response_json"></div>
+								<hr/>
+									<h3>实际响应体</h3>
+									<div class="row" ><div class="col-md-12" style="word-wrap:break-word"><PRE  id="response_content" ></PRE></div></div>
+							</div>
+            
+                
+                </div>
+<script>
+var module='<?php echo $this->request['module'];?>';
+var api='<?php echo $this->request['api'];?>';
+var field='<?php echo join(',',$field);?>'.split(',');
+var require_field='<?php echo join(',',$requiredField);?>'.split(',')
+
+function request(){
+    $('#sb').html('正在请求....');
+    $('#sb').unbind('click');
+	var not_pass=''
+    var result=0
+	var url=$('#api_route').text();
+	data={}
+	//必填项判断
+	$.each(require_field,function(k,v){
+		if(v){
+    		if(!$('input[id="'+v+'"]').val()){
+    			alert(v+'不能为空');
+    			result=-1;
+    		}
+		}
+	})
+	                                                           
+	$("input[name='not_pass']:checked").each(function(){ 
+                    not_pass += $(this).val()+","
+     })
+    not_pass=not_pass.split(",");
+	
+	//匹配URL
+	$.each(field,function(k,v){
+		    if($.inArray(v,not_pass)==-1){
+		    	  data[v]=$('input[id="'+v+'"]').val()
+		    }
+	})
+    
+    if(result==-1) {
+        $('#sb').html('提交');
+        $('#sb').bind('click',request);
+    	return false;
+    }
+
+	var request_type=
+	  $.ajax({
+	        url: '/platform/index/test',
+	        type: 'POST',
+	        data:{
+	        	api_route:url,
+	        	request_type:$('#api_request_type').text(),
+	        	param: data
+		    }
+	    }).done(function(msg){
+	        if (msg.status == 0) {
+	            $('#response_content').text(msg.data);
+	            $('#response_json').html(msg.json);
+                $('#api_time').text(msg.apiTime);
+                $('#sql').html(msg.sql);
+                $('#sql_time').html(msg.sqlTime);
+                $('#mongo').html(msg.mongo);
+                $('#mongo_time').html(msg.mongoTime);
+				$('#solr').html(msg.solr);
+                $('#solr_time').html(msg.solrTime);
+	            $('#response_url').text(msg.url);
+	        } else {
+	         
+	            alert('失败');
+	        }
+              $('#sb').html('提交');
+              $('#sb').bind('click',request);
+	    });
+}
+
+
+$('#changeapi').click(function(){
+    $.ajax({
+        url: '/platform/index/change',
+        type: 'POST',
+        data:{
+            apihost: $('#apihost').val()
+        }
+    }).done(function(msg){
+            alert('変更成功');
+        });
+})
+
+$('#changeplatform').click(function(){
+    $.ajax({
+        url: '/platform/index/change',
+        type: 'POST',
+        data:{
+            platform: $('#platform').val()
+        }
+    }).done(function(msg){
+            alert('変更成功');
+        });
+})
+
+$('#changeop').click(function(){
+    $.ajax({
+        url: '/platform/index/change',
+        type: 'POST',
+        data:{
+            op: $('#op').val()
+        }
+    }).done(function(msg){
+            alert('変更成功');
+        });
+})
+
+
+function get_param(){
+    $('#getparam').html('正在获取中.....');
+    $.ajax({
+        url: '/platform/index/getparam',
+        type: 'get',
+        data:{
+            route:'<?php echo isset($this -> currentApi['route']) ? $this->currentApi['route'] : '';?>',
+            method:'<?php echo @isset($moduleType[$this->currentApi['type']]) ? strtolower($moduleType[$this->currentApi['type']]) : '';?>'
+        }
+    }).done(function(data){
+            $('#getparam').html('获取该API最新一次的请求参数');
+
+            if(data.data!=''){
+                $.each(data.data,function(k,v){
+                    $('#'+k).val(v);
+                });
+
+                $.each(field,function(k,v){
+                    if(!$('#'+v).val()){
+                        $("input[name='not_pass']").each(function(){
+                              if($(this).val() == v){
+
+                                  $(this).attr("checked",true);
+                              }
+                        })
+                    }
+                })
+            }
+            else{
+                alert('暂无数据');
+            }
+        });
+}
+
+
+$(function(){
+        $('#module').change(function(){location.href ='/platform/index/index?module='+$('#module').val(); });
+        $('#api').change(function(){location.href ='/platform/index/index?module='+module+'&api='+$('#api').val(); });
+        $('#sb').bind('click',request);
+});
+</script>

@@ -1,0 +1,240 @@
+
+                <div class="row">
+                    <div class="col-md-8">
+                    <h2> <a href="/platform/phone/manage" >返回模块列表</a>
+                    	<?php
+                        use Zend\Form\Element;
+
+$url = '/platform/phone/api?moduleId='.$this->request['moduleId'].'&';
+                        if (isset($this->request['moduleId'])) {
+                            echo "模块[ {$this->module['module']} ]API列表";
+                            echo '<h5>'.$this->module['intro'].'</5>';
+                        } ?>
+                    </h2>
+                        <div class="cl-sidebar">
+                        		<div class="row" style="background-color: #EEEEEE">
+                              <div class="col-md-1">授权</div>
+                        			 <div class="col-md-2"><strong>API名称</strong></div>
+                        			 <div class="col-md-3">API URL</div>
+                                <div class="col-md-2">缓存(秒)</div>
+                        			 <div class="col-md-1">类型</div>
+                        			 <div class="col-md-3">操作</div>
+                        		</div>
+                        		<?php
+                                $moduleType = array(
+                                    '0' => 'GET',
+                                    '1' => 'POST',
+                                    '2' => 'PUT',
+                                    '3' => 'DELETE',
+                                );
+                            $roleType = array(
+                              '0' => '后台开放',
+                              '1' => '前台开放',
+                              '2' => '用户开放',
+                              '3' => '平台开放',
+                              '4' => '第三方开放',
+                                );
+
+                                 if (!empty($this->data)) {
+                                     foreach ($this->data as $item) {
+                                         switch ($item['role']) {
+                                        case 1:$color = '#FFFFCC'; break;
+                                        case 2:$color = '#FFCCCC'; break;
+                                        default:$color = '#CCFFFF';
+                                      } ?>
+											<div class="row" style="background-color:<?php echo $color; ?>;margin-top:5px">
+                        <div class="col-md-1 type"><?php echo $roleType[$item['role']]; ?></div>
+<div class="col-md-2 name" ><?php echo $item['name']; ?></div>
+<div class="col-md-3  route"><?php echo $item['route']; ?></div>
+<div class="col-md-2  cache"><?php echo $item['cache']; ?></div>
+<div class="col-md-1 type"><?php echo $moduleType[$item['type']]; ?></div>
+<div class = "response" style= "display:none;position: relative; left: 30px; top: 20px;"><?php echo $item['response']; ?></div>
+<div class = "info" style= "display:none;position: relative; left: 30px; top: 20px;"><?php echo $item['info']; ?></div>
+
+<div class="col-md-3" data-id="<?php echo $item['id']; ?>" data-role-id="<?php echo $item['role']; ?>" data-type-id="<?php echo $item['type']; ?>">
+
+<button type="button" class="btn btn-default create" ><span class="glyphicon glyphicon-plus"></span></button>
+<button type="button" class="btn btn-default edit" ><span class="glyphicon glyphicon-edit"></span></button>
+<button type="button" class="btn btn-default  remove" ><span class="glyphicon glyphicon-remove"></span></button>
+<button type="button" class="btn btn-default  enter" ><span class="glyphicon glyphicon-log-in"></span></button></div>
+
+</div>
+                        	<?php
+
+                                     } ?>
+                        		<ul class="pagination">
+								  <li><a href="<?php echo $url; ?>page=1">&laquo;</a></li>
+								  <?php
+                                  $page = $this->num / 100;
+                                     if ($page > intval($page)) {
+                                         $page = intval($page) + 1;
+                                     } else {
+                                         $page = intval($page);
+                                     }
+                                     for ($i = 1; $i <= $page; ++$i) {
+                                         echo '<li ';
+                                         if ($i == $this->request['page']) {
+                                             echo 'class="active"';
+                                         }
+                                         echo '><a href="'.$url.'page='.$i.'">'.$i.'</a></li>';
+                                     }
+                                     echo '<li><a href="'.$url.'page='.$page.'">&raquo;</a></li>'; ?>
+
+								</ul>
+                        		<?php
+
+                                 }?>
+
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+							<div class="container">
+									<div class="container" style="height:1000px"  >
+ <form class="form-signin" style="float:none">
+        <h2 class="form-signin-heading" id='edit_title'>创建</h2>
+        <input type="hidden" value=''  id="api_id"/>
+        <input type="hidden" value='<?php echo $this->request['moduleId']; ?>'  id="module_id"/>
+        <input type="text"  id="api_name" size="200" class="form-control" placeholder="API名称" required autofocus>
+        <input type="text" id="api_route"   size="200"  class="form-control"  placeholder="API URL"  required autofocus>
+        <input type="text" id="api_cache"   size="200"  class="form-control"  placeholder="缓存时间(秒),只对GET类型有效"  required autofocus>
+        <textarea id="api_info"   size="200"  class="form-control"  placeholder="接口说明"></textarea>
+        <textarea id="api_response"   size="200" style="height:200px" class="form-control"  placeholder="返回实例"></textarea>
+
+        类型:<?php
+
+$element = new Element\Select('type');
+$element->setValueOptions($moduleType)->setAttribute('id', 'type');
+echo $this->formSelect($element);
+?>
+授权:<?php
+
+$element = new Element\Select('role');
+$element->setValueOptions($roleType)->setAttribute('id', 'role');
+echo $this->formSelect($element);
+?>
+        <button class="btn btn-lg btn-primary btn-block" type="button" id="sb">提交</button>
+      </form>
+      <h3>更新日志</h3>
+      <div>
+        <?php echo nl2br($this->module['logs']); ?>
+</div>
+    </div>
+							</div>
+                    </div>
+                </div>
+<script>
+
+/**
+ * 添加机构
+ */
+function create(e)
+{
+    $.ajax({
+        url: '/platform/phone/createapi',
+        type: 'POST',
+        data: {
+            module_id: $('#module_id').val(),
+         	name:$('#api_name').val(),
+          info:$('#api_info').val(),
+          response:$('#api_response').val(),
+           	route:$('#api_route').val(),
+            cache:$('#api_cache').val(),
+            role:$('#role').val(),
+        	type:$('#type').val(),
+           	id:$('#api_id').val(),
+        }
+    }).done(function(msg){
+        if (msg.status == 0) {
+            $(e.target).triggerHandler('success');
+            location.reload()
+        } else {
+            $(e.target).triggerHandler('error');
+            alert('失败');
+        }
+    });
+}
+
+
+function remove(e)
+{
+    var truthBeTold = window.confirm("是否确认删除");
+    if (truthBeTold) {
+    $.ajax({
+        url: '/platform/phone/deleteapi',
+        type: 'POST',
+        data: {
+ 			id:$(e.target).parent().attr('data-id')
+        }
+    }).done(function(msg){
+   	 if (msg.status == 0) {
+         $(e.target).triggerHandler('success');
+         location.reload()
+     } else {
+         $(e.target).triggerHandler('error');
+         alert('失败');
+     }
+    });
+    }
+}
+
+function setCreate(e){
+	$('#edit_title').text('创建');
+	$('#api_id').val('');
+	$('#api_name').val('');
+  $('#api_info').val('');
+    $('#api_response').val('');
+    $('#api_cache').val('');
+	$('#api_route').val('');
+	$('#type').val(0);
+  	$('#role').val(0);
+}
+
+function setEdit(e){
+        var sid=$(e.target).parent().attr('data-id');
+        var type_id = $(e.target).parent().attr('data-type-id');
+        var role_id = $(e.target).parent().attr('data-role-id');
+
+	$('#api_name').val($(e.target).parent().parent().children('.name').text());
+	$('#api_route').val($(e.target).parent().parent().children('.route').text());
+  $('#api_info').val($(e.target).parent().parent().children('.info').text());
+  $('#api_response').val($(e.target).parent().parent().children('.response').text());
+  $('#api_cache').val($(e.target).parent().parent().children('.cache').text());
+
+        // remove all selected status
+        $('#type option').removeAttr('selected');
+  $('#role option').removeAttr('selected');
+        //
+        	$('#role option[value=' + role_id + ']').prop('selected', true);
+	$('#type option[value=' + type_id + ']').prop('selected', true);
+	$('#edit_title').text('编辑API');
+	$('#api_id').val(sid);
+}
+
+function enter(e){
+	var sid=$(e.target).parent().attr('data-id');
+	location.href ='/platform/phone/param?apiId='+sid;
+}
+
+
+$(function(){
+
+    $('.create').each(function(){
+        $(this).bind('click', setCreate);
+    });
+
+    $('.edit').each(function(){
+        $(this).bind('click', setEdit);
+    });
+
+    $('.remove').each(function(){
+        $(this).bind('click', remove);
+    });
+
+    $('.enter').each(function(){
+        $(this).bind('click', enter);
+    });
+
+    $('#sb').bind('click',create);
+
+});
+</script>

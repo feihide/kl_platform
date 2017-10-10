@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+  <entity name="OrgGroupHasPrivilege" table="org_group_has_privilege">
+    <indexes>
+      <index name="fk_org_group_has_privilege_org_group1_idx" columns="org_group_id"/>
+    </indexes>
+    <id name="orgPrivilegeCode" type="string" column="org_privilege_code" length="20"/>
+    <id name="orgGroup" association-key="true"/>
+    <one-to-one field="orgGroup" target-entity="OrgGroup">
+      <join-columns>
+        <join-column name="org_group_id" referenced-column-name="id"/>
+      </join-columns>
+    </one-to-one>
+  </entity>
+</doctrine-mapping>

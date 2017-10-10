@@ -1,0 +1,119 @@
+<?php
+if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW']) ||
+    $_SERVER['PHP_AUTH_USER'] != ADMIN_USERNAME ||$_SERVER['PHP_AUTH_PW'] != ADMIN_PASSWORD) {
+    Header("WWW-Authenticate: Basic realm=\" Login\"");
+    Header("HTTP/1.0 401 Unauthorized");
+
+    echo <<<EOB
+				<html><body>
+				<h1>Rejected!</h1>
+				<big>Wrong Username or Password!</big>
+				</body></html>
+EOB;
+    exit;
+}
+
+?>
+
+<div class="row">
+    <div class="col-md-12">
+        <h2>请求方式 <?php use Zend\Form\Element;
+
+            $method = $_GET['method']?$_GET['method']:'get';
+            $period = $_GET['period']?$_GET['period']:0;
+            $url='/platform/index/static?type='.$_GET['type'].'&mothod='.$method;
+            $type = $_GET['type']?$_GET['type']:'slow';
+
+            switch($type){
+                case 'slow':
+                    $switch =array('name'=>"平均耗时",'value'=>'avg_time');
+                    break;
+                case 'request':
+                    $switch =array('name'=>"总请求次数",'value'=>'request_count');
+                    break;
+                case 'sql':
+                    $switch =array('name'=>"请求sql数",'value'=>'sql_time');
+                    break;
+            }
+
+            $element = new Element\Select('api_time');
+            $element->setValueOptions(array('一个月内','一周内', '全部'))->setAttribute('id', 'api_time')->setAttribute('value',$period);
+            echo $this->formSelect($element);
+
+            $element = new Element\Select('module');
+            $element->setValueOptions(array('get'=>'get','post'=>'post','put'=>'put','delete'=>'delete'))->setAttribute('id', 'module')->setAttribute('value',$_GET['method']);
+            echo $this->formSelect($element);
+            ?>
+            <a href="/platform/index/static?type=slow&mothod=<?php echo $method;?>&period=<?php echo $period;?>" <?php if($type=='slow') echo 'style="background-color: yellow"';?> >速度最慢</a>
+            | <a href="/platform/index/static?type=request&mothod=<?php echo $method;?>&period=<?php echo $period;?>" <?php if($type=='request') echo 'style="background-color: yellow"';?>>请求次数最多</a>
+         <!--   | <a href="/platform/index/static?type=sql&mothod=<?php echo $method;?>&period=<?php echo $period;?>" <?php if($type=='sql') echo 'style="background-color: yellow"';?>>SQL语句最多</a>
+            -->
+        </h2>
+        <h3>总数据样本数：<?php echo $this->static_num;?></h3>
+        <div class="cl-sidebar">
+            <div class="row" style="background-color: #EEEEEE">
+                <div class="col-md-1"><strong>排名</strong></div>
+                <div class="col-md-6">API</div>
+                <div class="col-md-2"><?php echo $switch['name'];?></div>
+                <div class="col-md-2">查看调用日志</div>
+            </div>
+            <?php
+            $i = ($page -1)*10 +1;
+            if(!empty($this->data)){
+                foreach($this->data as $item){?>
+                    <div class="row" style="background-color: #CCEEEF;margin-top:5px">
+                        <div class="col-md-1  module" ><?php echo $i;?></div>
+                        <div class="col-md-6 intro"><?php echo $item['_id'];?></div>
+                        <div class="col-md-2 intro">  <?php echo $item[$switch['value']];?></div>
+                        <div class="col-md-2" data-id="<?php echo $item['_id'];?>">
+                         <button type="button" class="btn btn-default  enter" ><span class="glyphicon glyphicon-log-in"></span></button>
+
+                        </div>
+                    </div>
+                <?php
+                $i++;
+                } ?>
+                <ul class="pagination">
+                    <li><a href="<?echo $url;?>page=1">&laquo;</a></li>
+                    <?php
+                    $page=$this->num/10;
+                    if($page > intval($page))
+                        $page=intval($page)+1;
+                    else
+                        $page=intval($page);
+
+                    for($i=1;$i<=$page;$i++){
+                        echo "<li ";
+                        if($i==$this->page) echo 'class="active"';
+                        echo '><a href="'.$url.'&page='.$i.'">'.$i.'</a></li>';
+                    }
+                    echo '<li><a href="'.$url.'&page='.$page.'">&raquo;</a></li>';
+                    ?>
+
+                </ul>
+            <?php }?>
+
+        </div>
+    </div>
+
+</div>
+<script>
+    function enter(e){
+        var sid=$(e.target).parent().attr('data-id');
+        var url='/platform/index/staticdetail?route='+sid+'&method=<?php echo$method;?>';
+
+        location.href =url;
+    }
+
+    $(document).ready(function(){
+        $('.enter').each(function(){
+            $(this).bind('click', enter);
+        });
+
+    });
+
+    function cc(){location.href ='/platform/index/static?method='+$('#module').val()+'&period='+$('#api_time').val(); }
+
+    $('#module').change( cc);
+    $('#api_time').change( cc);
+</script>

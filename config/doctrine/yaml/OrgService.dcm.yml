@@ -1,0 +1,49 @@
+OrgService:
+    type: entity
+    table: org_service
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: true
+            comment: ''
+            id: true
+            generator:
+                strategy: IDENTITY
+    fields:
+        passportId:
+            type: integer
+            nullable: false
+            unsigned: true
+            comment: ''
+            column: passport_id
+        serviceTypeId:
+            type: integer
+            nullable: false
+            unsigned: true
+            comment: 服务类型
+            column: service_type_id
+        name:
+            type: string
+            nullable: false
+            length: 45
+            fixed: false
+            comment: 服务名称
+        code:
+            type: string
+            nullable: false
+            length: 45
+            fixed: false
+            comment: 代码
+        targetType:
+            type: boolean
+            nullable: false
+            comment: "销售对象\n0 - 个人\n1 - 中小企业\n对应于passport中的type字段"
+            column: target_type
+        intro:
+            type: text
+            nullable: false
+            length: null
+            fixed: false
+            comment: 介绍
+    lifecycleCallbacks: {  }

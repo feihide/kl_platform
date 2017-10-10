@@ -1,0 +1,21 @@
+<?php
+ echo $this->headScript()
+        ->appendFile($this->basePath() . '/assets/jquery/jquery.treeview.js', 'text/javascript')
+        ->appendFile($this->basePath() . '/assets/jquery/jquery.treeview.edit.js', 'text/javascript')
+        ->appendFile($this->basePath() . '/assets/jquery/jquery.treeview.async.js', 'text/javascript');
+?>
+<link rel="stylesheet" href="<?php echo $this->basePath();?>/assets/jquery/jquery.treeview.css" />
+<script type="text/javascript">
+	function initTrees() {
+		$("#black").treeview({
+			url: "/platform/category/gettree"
+		})
+	}
+	$(document).ready(function(){
+		initTrees();
+	});
+	</script>
+ 
+<ul id="black">
+</ul>
+ 

@@ -1,0 +1,28 @@
+OrgSub:
+    type: entity
+    table: org_sub
+    indexes:
+        fk_org_sub_org_group1_idx:
+            columns:
+                - org_group_id
+    id:
+        passportId:
+            type: integer
+            nullable: false
+            unsigned: true
+            comment: ''
+            id: true
+            column: passport_id
+            generator:
+                strategy: IDENTITY
+    manyToOne:
+        orgGroup:
+            targetEntity: OrgGroup
+            cascade: {  }
+            mappedBy: null
+            inversedBy: null
+            joinColumns:
+                org_group_id:
+                    referencedColumnName: id
+            orphanRemoval: false
+    lifecycleCallbacks: {  }

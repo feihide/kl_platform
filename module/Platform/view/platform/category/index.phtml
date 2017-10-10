@@ -1,0 +1,172 @@
+<?php
+
+if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW']) ||
+    $_SERVER['PHP_AUTH_USER'] != ADMIN_USERNAME ||$_SERVER['PHP_AUTH_PW'] != ADMIN_PASSWORD) {
+    Header("WWW-Authenticate: Basic realm=\" Login\"");
+    Header("HTTP/1.0 401 Unauthorized");
+
+    echo <<<EOB
+				<html><body>
+				<h1>Rejected!</h1>
+				<big>Wrong Username or Password!</big>
+				</body></html>
+EOB;
+    exit;
+}
+
+$url='/platform/category/index?'?>
+                <div class="row">
+                    <div class="col-md-8">
+                        <h2> 
+                              <a href="/platform/category/index?parentId=<?php echo $this->parent['parent_id'];?>" ><<返回父级分类</a>  |  
+                    |         <a href="/platform/category/index?parentId=0" ><<返回顶级分类</a>
+                        </h2>
+                        <h3>
+                        <?php if(!empty($this->parent)){?>
+                        父ID: <?php echo $this->parent['id'];?>  | 
+                                名称:   <?php echo $this->parent['name'];?>  |
+                               code:<?php echo $this->parent['code']; }?> </h3>
+                        <div class="cl-sidebar">
+                        		<div class="row" style="background-color: #EEEEEE">
+                        			 <div class="col-md-1">ID</div>
+                        			 <div class="col-md-2"><strong>分类名称</strong></div>
+                        			 <div class="col-md-2">CODE</div>
+									 <div class="col-md-2">ROLE</div>
+                        			 <div class="col-md-1">排序</div>
+                        			 <div class="col-md-4">操作</div>
+                        		</div>
+                        		<?php 
+                        		 if(!empty($this->data)){
+                        						foreach($this->data as $item){?>
+											<div class="row" style="background-color: #CCEEEF;margin-top:5px">
+<div class="col-md-1 id" ><?php echo $item['id'];?></div>
+<div class="col-md-2  name"><?php echo $item['name'];?></div>
+<div class="col-md-2 code"><?php echo $item['code'];?></div>
+<div class="col-md-2 role"><?php echo $item['role'];?></div>
+<div class="col-md-1 sort"><?php echo $item['sort'];?></div>
+<div class="col-md-4" >
+<button type="button" class="btn btn-default create" ><span class="glyphicon glyphicon-plus"></span></button>
+<button type="button" class="btn btn-default edit" ><span class="glyphicon glyphicon-edit"></span></button>    
+<button type="button" class="btn btn-default  remove" ><span class="glyphicon glyphicon-remove"></span></button>
+<button type="button" class="btn btn-default  enter" ><span class="glyphicon glyphicon-log-in"></span></button></div>
+</div>
+                        	<?php } ?>
+                        		
+                        		<?php }?>
+                        		
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+							<div class="container">
+									<div class="container">
+                                         <form class="form-signin">
+                                                <h2 class="form-signin-heading" id='edit_title'>创建</h2>
+                                                <input type="hidden" value=''  id="cat_id"/>
+                                                <input type="hidden" value='<?php echo $this->request['parentId'];?>'  id="parent_id"/>
+                                                <input type="text"  id="name" size="200" class="form-control" placeholder="名称" required autofocus>
+                                                <input type="text" id="code"   size="200"  class="form-control"  placeholder="code"  autofocus>
+												 <input type="text" id="role"   size="200"  class="form-control"  placeholder="role"  autofocus>
+                                                <input type="text" id="sort"   size="100"  class="form-control"  placeholder="sort"  autofocus>
+                                                
+                                                <button class="btn btn-lg btn-primary btn-block" type="button" id="sb">提交</button>
+                                        </form>
+                                </div>
+            			</div>
+                </div>
+            </div>
+<script>
+
+
+function create(e)
+{
+    $.ajax({
+        url: '/platform/category/create',
+        type: 'POST',
+        data: {
+            parent_id: $('#parent_id').val(),
+         	name:$('#name').val(),
+           	code:$('#code').val(),
+		   role:$('#role').val(),
+        	sort:$('#sort').val(),
+           	id:$('#cat_id').val(),
+        }
+    }).done(function(msg){
+        if (msg.status == 0) {
+            $(e.target).triggerHandler('success');
+            location.reload() 
+        } else {
+            $(e.target).triggerHandler('error');
+            alert('出错');
+        }
+    });
+}
+
+
+function remove(e)
+{var truthBeTold = window.confirm("是否确认删除");
+    if (truthBeTold) {
+    $.ajax({
+        url: '/platform/category/delete',
+        type: 'POST',
+        data: {
+ 			id:$(e.target).parent().parent().children('.id').text()
+        }
+    }).done(function(msg){
+   	 if (msg.status == 0) {
+         $(e.target).triggerHandler('success');
+         location.reload() 
+     } else {
+         $(e.target).triggerHandler('error');
+         alert('失败');
+     }
+    });
+    }
+}
+
+function setCreate(e){
+	$('#edit_title').text('创建');
+	$('#cat_id').val('');
+	$('#name').val('');
+	$('#code').val('');
+    $('#role').val(''),
+	$('#sort').val(0);
+}
+
+function setEdit(e){
+    var sid=$(e.target).parent().parent().children('.id').text();
+	$('#name').val($(e.target).parent().parent().children('.name').text());
+	$('#code').val($(e.target).parent().parent().children('.code').text());
+	$('#sort').val($(e.target).parent().parent().children('.sort').text());
+	$('#role').val($(e.target).parent().parent().children('.role').text());
+
+	$('#edit_title').text('编辑分类');
+	$('#cat_id').val(sid);
+}
+
+function enter(e){
+	var sid=$(e.target).parent().parent().children('.id').text();
+	location.href ='/platform/category/index?parentId='+sid;
+}
+
+
+$(function(){
+
+    $('.create').each(function(){
+        $(this).bind('click', setCreate);
+    });
+
+    $('.edit').each(function(){
+        $(this).bind('click', setEdit);
+    });
+
+    $('.remove').each(function(){
+        $(this).bind('click', remove);
+    });
+
+    $('.enter').each(function(){
+        $(this).bind('click', enter);
+    });
+
+    $('#sb').bind('click',create);	
+});
+</script>

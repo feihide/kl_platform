@@ -1,0 +1,74 @@
+<?php 
+error_reporting(0);
+
+echo $this->doctype();
+ use Zend\Form\Element;
+?>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <?php //echo $this->headTitle('91money.com')->setSeparator(' - ')->setAutoEscape(false) ?>
+
+        <?php echo $this->headMeta()
+            ->appendName('viewport', 'width=device-width, initial-scale=1.0')
+            ->appendHttpEquiv('X-UA-Compatible', 'IE=edge')
+        ?>
+
+        <!-- Le styles -->
+        <?php echo $this->headLink(array('rel' => 'shortcut icon', 'type' => 'image/vnd.microsoft.icon', 'href' => $this->basePath() . '/assets/img/favicon.ico'))
+                        ->appendStylesheet($this->basePath() . '/assets/bootstrap/css/bootstrap.min.css')
+                        ->appendStylesheet($this->basePath() . '/assets/bootstrap/css/bootstrap-theme.min.css')
+                        ->appendStylesheet($this->basePath() . '/assets/css/style.css'); ?>
+
+        <!-- Scripts -->
+        <?php echo $this->headScript()
+            ->appendFile($this->basePath() . '/assets/html5shiv/html5shiv.min.js', 'text/javascript', array('conditional' => 'lt IE 9',))
+            ->appendFile($this->basePath() . '/assets/respond/respond.min.js', 'text/javascript', array('conditional' => 'lt IE 9',))
+            ->appendFile($this->basePath() . '/assets/jquery/jquery.min.js')
+            ->appendFile($this->basePath() . '/assets/bootstrap/js/bootstrap.min.js')
+            ->appendFile($this->basePath() . '/assets/js/common.js');?>
+
+    </head>
+    <body>
+        <header class="navbar navbar-default navbar-fixed-top" role="banner">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand"  target = "_blank" href="/platform/index/manage">LEX管理|</a>
+                    <a class="navbar-brand"  target = "_blank" href="/platform/index/index">LEX测试|</a>
+                    <a class="navbar-brand"  target = "_blank" href="/platform/phone/manage">PAPI管理|</a>
+                    <a   class="navbar-brand"  target = "_blank"  href="/platform/phone/index">PAPI测试|</a>
+                    <a class="navbar-brand" target = "_blank" href="/platform/category/index">DICT管理|</a>
+                    <a class="navbar-brand"  target = "_blank" href="/platform/category/tree">DICT树|</a>
+                    <a class="navbar-brand" target = "_blank" href="/platform/managetree/index">导航</a>
+                    <a class="navbar-brand" target = "_blank" href="/platform/debug/index">|DEBUG管理</a>
+
+                    <a class="navbar-brand" target = "_blank" href="/memcache.php">|cache管理</a>
+                    <a class="navbar-brand" target = "_blank" href="/platform/index/info">|PHP本地</a>
+                </div>
+                <nav class="collapse navbar-collapse" role="navigation">
+                    <ul class="nav navbar-nav navbar-right">
+
+                    </ul>
+                </nav>
+            </div>
+        </header>
+        <main id="content" role="main">
+            <div class="container">
+            <?php echo $this->content;?>
+            </div>
+        </main>
+        <footer>
+            <div class="container">
+					
+            </div>
+        </footer>
+
+
+    </body>
+</html>

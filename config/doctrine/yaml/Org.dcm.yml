@@ -1,0 +1,52 @@
+Org:
+    type: entity
+    table: org
+    id:
+        passportId:
+            type: integer
+            nullable: false
+            unsigned: true
+            comment: "机构id\n(passport_id)"
+            id: true
+            column: passport_id
+            generator:
+                strategy: IDENTITY
+    fields:
+        brandId:
+            type: integer
+            nullable: false
+            unsigned: true
+            comment: ''
+            column: brand_id
+        cityId:
+            type: integer
+            nullable: false
+            unsigned: true
+            comment: ''
+            column: city_id
+        parentId:
+            type: integer
+            nullable: false
+            unsigned: true
+            comment: 父机构id
+            default: '0'
+            column: parent_id
+        subNum:
+            type: integer
+            nullable: false
+            unsigned: true
+            comment: 子机构数量
+            default: '0'
+            column: sub_num
+        biaodiId:
+            type: integer
+            nullable: false
+            unsigned: true
+            comment: ''
+            default: '0'
+            column: biaodi_id
+        status:
+            type: boolean
+            nullable: false
+            comment: '0 - 删除'
+    lifecycleCallbacks: {  }

@@ -1,0 +1,136 @@
+<div class="row">
+    <div class="col-md-12">
+        <h2>请求方式 <?php use Zend\Form\Element;
+
+            $type = $_GET['type']?$_GET['type']:'';
+            $env = $_GET['env']?$_GET['env']:'';
+            $city = $_GET['city']?$_GET['city']:'';
+            $module = $_GET['module']?$_GET['module']:'';
+            $link ='type='.$type.'&env='.$env.'&city='.$city.'&module='.$module;
+            $url='/platform/debug/index?'.$link;
+            echo '<form action="" type="get">';
+            $element = new Element\Select('type');
+            $element->setValueOptions(array(''=>'类型','system_error'=>'系统错误','php_error'=>'php报错',
+'model_error'=>'存储报错','sql_warn'=>'sql警告','debug'=>'调试信息'))->setAttribute('id', 'type')->setAttribute('value',$_GET['type']);
+            echo  $this->formSelect($element);
+            echo '  使用环境：<input type="text" name="env" value="'.$env.'"><br>';
+            $element = new Element\Select('module');
+            $element->setValueOptions(array(''=>'模块','app'=>'app','backend'=>'backend','partner'=>'partner'))->setAttribute('id', 'module')->setAttribute('value',$_GET['module']);
+            echo  $this->formSelect($element);
+
+            echo '  对应城市：<input type="text" name="city" value="'.$city.'">';
+            echo '<button type="submit" name="sb" >提交</button>';
+            echo '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<a href="/platform/debug/delall?'.$link.'" target="_blank">清空所有</a>';
+
+            echo '</form>';
+            ?>
+
+        </h2>
+        <h3>总数：<?php echo $this->num;?></h3>
+        <div class="cl-sidebar">
+            <div class="row" style="background-color: #EEEEEE">
+                <div class="col-md-2"><strong>时间</strong></div>
+                <div class="col-md-1">城市</div>
+                <div class="col-md-2">报错信息</div>
+                <div class="col-md-4">详细日志</div>
+                <div class="col-md-1">生成模块</div>
+                <div class="col-md-1">日志类型</div>
+                <div class="col-md-1">操作</div>
+            </div>
+            <?php
+            $i = ($page -1)*10 +1;
+            if(!empty($this->list)){
+                foreach($this->list as $item){
+
+                    ?>
+                    <div class="row" style="background-color: #CCEEEF;margin-top:5px">
+                        <div class="col-md-2  module" ><?php echo '['.$item['env'].']'.$item['ctime'];?></div>
+                        <div class="col-md-1 intro"><?php echo $item['city'];?></div>
+                        <div class="col-md-2 intro"><?php echo $item['message'];?></div>
+                        <div class="col-md-4"><pre class="showcode"  data="<?php echo htmlspecialchars($item['trace']);?>">
+                         <?php
+                         if(strpos($item['type'],'error')==false){
+                             echo ($item['trace'])?'查看详情':'无内容';
+                         }
+                         else{
+                             echo htmlspecialchars($item['trace']);
+                         }
+
+                         ?></pre></div>
+                        <div class="col-md-1" ><?php echo $item['platform'];?></div>
+                        <div class="col-md-1" ><?php echo $item['type'];?></div>
+                      <div class = "col-md-1" data-id="<?php echo $item['_id'];?>">   <button type="button" class="btn btn-default  remove" ><span class="glyphicon glyphicon-remove"></span></button>
+                        </div>
+                    </div>
+                <?php
+                $i++;
+                } ?>
+                <ul class="pagination">
+                    <li><a href="<?echo $url;?>page=1">&laquo;</a></li>
+                    <?php
+                    $page=$this->num/10;
+                    if($page > intval($page))
+                        $page=intval($page)+1;
+                    else
+                        $page=intval($page);
+
+                    for($i=1;$i<=$page;$i++){
+                        if($i==1 || $i==$page || ($i<$this->page+10 && $i>$this->page-10)){
+
+                        echo "<li ";
+                        if($i==$this->page) echo 'class="active"';
+                        echo '><a href="'.$url.'&page='.$i.'">'.$i.'</a></li>';
+                        }
+                    }
+                    echo '<li><a href="'.$url.'&page='.$page.'">&raquo;</a></li>';
+                    ?>
+
+                </ul>
+            <?php }?>
+
+        </div>
+    </div>
+
+</div>
+<script>
+    $('.remove').each(function(){
+        $(this).bind('click', remove);
+    });
+    $('.showcode').each(function(){
+        $(this).bind('click', showCode);
+    });
+
+
+    function showCode(e){
+        var s='查看详情';
+        if($(e.target).text()==s){
+
+            $(e.target).text($(e.target).attr('data'));
+        }
+        else{
+            $(e.target).text(s);
+        }
+    }
+
+    function remove(e)
+    {
+        var truthBeTold = window.confirm("是否确认删除");
+        if (truthBeTold) {
+            $.ajax({
+                url: '/platform/debug/delete',
+                type: 'POST',
+                data: {
+                    id:$(e.target).parent().attr('data-id')
+                }
+            }).done(function(msg){
+                if (msg.status == 0) {
+                    $(e.target).triggerHandler('success');
+                    location.reload()
+                } else {
+                    $(e.target).triggerHandler('error');
+                    alert('失败');
+                }
+            });
+        }
+    }
+</script>

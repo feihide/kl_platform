@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+  <entity name="Org" table="org">
+    <id name="passportId" type="integer" column="passport_id">
+      <generator strategy="IDENTITY"/>
+    </id>
+    <field name="brandId" type="integer" column="brand_id" nullable="false"/>
+    <field name="cityId" type="integer" column="city_id" nullable="false"/>
+    <field name="parentId" type="integer" column="parent_id" nullable="false"/>
+    <field name="subNum" type="integer" column="sub_num" nullable="false"/>
+    <field name="biaodiId" type="integer" column="biaodi_id" nullable="false"/>
+    <field name="status" type="boolean" column="status" nullable="false"/>
+  </entity>
+</doctrine-mapping>

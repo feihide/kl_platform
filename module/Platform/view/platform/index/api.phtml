@@ -1,0 +1,236 @@
+
+                <div class="row">
+                    <div class="col-md-10">
+                    <h2> <a href="/platform/index/manage" >返回模块列表</a>
+                    	<?php
+                    	use Zend\Form\Element;
+                        $cacheTime = array(15*60=>'15分钟',3600=>'1小时',3600*12=>'半天',3600*24=>'1天',0=>'永久有效');
+                        $url='/platform/index/api?moduleId='.$this->request['moduleId'].'&';
+                    	if(isset($this->request['moduleId'])) echo "模块[ {$this->module['module']} ]API列表".'   '.$this->module['intro'];?>
+                    </h2>
+                        <div class="cl-sidebar">
+                        		<div class="row" style="background-color: #EEEEEE">
+                        			 <div class="col-md-2"><strong>API名称</strong></div>
+                        			 <div class="col-md-2">API URL</div>
+                        			 <div class="col-md-1">类型</div>
+                                    <div class="col-md-1">缓存否</div>
+                                    <div class="col-md-1">列表否</div>
+                                    <div class="col-md-2">缓存名</div>
+                                    <div class="col-md-1">cacheTime</div>
+                        			 <div class="col-md-2">操作</div>
+                        		</div>
+                        		<?php
+                        		$moduleType=array(
+                        				'0' => 'GET',
+                        				'1' => 'POST',
+                        				'2' => 'PUT',
+                        				'3' => 'DELETE'
+                        		);
+                                $is =array('否','是');
+
+                        		 if(!empty($this->data)){
+                        						foreach($this->data as $item){?>
+											<div class="row" style="background-color: #CCEEEF;margin-top:5px">
+<div class="col-md-2 name" ><?php echo $item['name'];?></div>
+<div class="col-md-2  route"><?php echo $item['route'];?></div>
+<div class="col-md-1 type"><?php echo $moduleType[$item['type']];?></div>
+<div class="col-md-1 type"><?php echo $is[$item['is_cache']];?></div>
+<div class="col-md-1 type"><?php echo $is[$item['is_list_cache']];?></div>
+<div class="col-md-2 cache_name"><?php echo $item['cache_name'];?></div>
+ <div class="col-md-1 cache_time"><?php
+
+     if($item['is_cache']){
+         echo $cacheTime[$item['cache_time']];
+    }
+    ?></div>
+<div class="col-md-2" data-id="<?php echo $item['id'];?>" data-type-id="<?php echo $item['type'];?>"  data-is_cache="<?php echo $item['is_cache']; ?>"
+ data-is_list_cache="<?php echo $item['is_list_cache']; ?>">
+<button type="button" class="btn btn-default create" ><span class="glyphicon glyphicon-plus"></span></button>
+<button type="button" class="btn btn-default edit" ><span class="glyphicon glyphicon-edit"></span></button>
+<button type="button" class="btn btn-default  remove" ><span class="glyphicon glyphicon-remove"></span></button>
+<button type="button" class="btn btn-default  enter" ><span class="glyphicon glyphicon-log-in"></span></button></div>
+</div>
+                        	<?php } ?>
+                        		<ul class="pagination">
+								  <li><a href="<?php echo $url;?>page=1">&laquo;</a></li>
+								  <?php
+								  $page=$this->num/100;
+								  if($page > intval($page))
+								 	 $page=intval($page)+1;
+								  else
+								    $page=intval($page);
+								  for($i=1;$i<=$page;$i++){
+									echo "<li ";
+									if($i==$this->request['page']) echo 'class="active"';
+									echo '><a href="'.$url.'page='.$i.'">'.$i.'</a></li>';
+								}
+								echo '<li><a href="'.$url.'page='.$page.'">&raquo;</a></li>';
+								?>
+
+								</ul>
+                        		<?php }?>
+
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+
+ <form class="form-signin">
+        <h2 class="form-signin-heading" id='edit_title'>创建</h2>
+        <input type="hidden" value=''  id="api_id"/>
+        <input type="hidden" value='<?php echo $this->request['moduleId'];?>'  id="module_id"/>
+        <input type="text"  id="api_name" size="200" class="form-control" placeholder="API名称" required autofocus>
+        <input type="text" id="api_route"   size="200"  class="form-control"  placeholder="API URL"  required autofocus>
+        类型:<?php
+
+$element = new Element\Select('type');
+$element->setValueOptions($moduleType)->setAttribute('id', 'type');
+echo $this->formSelect($element);
+?>
+     <br>是否缓存:<?php
+
+     $element = new Element\Select('is_cache');
+     $element->setValueOptions($is)->setAttribute('id', 'is_cache');
+     echo $this->formSelect($element);
+     ?>
+     <br>列表缓存:<?php
+
+     $element = new Element\Select('is_list_cache');
+     $element->setValueOptions($is)->setAttribute('id', 'is_list_cache');
+     echo $this->formSelect($element);
+     ?>
+     <br>缓存时间:<?php
+     $element = new Element\Select('cache_time');
+     $element->setValueOptions($cacheTime)->setAttribute('id', 'cache_time');
+     echo $this->formSelect($element);
+     ?>
+     <input type="text" id="cache_name"   size="200"  class="form-control"  placeholder="缓存名称">
+
+
+        <button class="btn btn-lg btn-primary btn-block" type="button" id="sb">提交</button>
+      </form>
+
+
+    </div>
+							</div>
+
+<script>
+
+/**
+ * 添加机构
+ */
+function create(e)
+{
+    $.ajax({
+        url: '/platform/index/createapi',
+        type: 'POST',
+        data: {
+            module_id: $('#module_id').val(),
+         	name:$('#api_name').val(),
+           	route:$('#api_route').val(),
+        	type:$('#type').val(),
+            is_cache:$('#is_cache').val(),
+            is_list_cache:$('#is_list_cache').val(),
+            cache_time:$('#cache_time').val(),
+            cache_name:$('#cache_name').val(),
+           	id:$('#api_id').val()
+        }
+    }).done(function(msg){
+        if (msg.status == 0) {
+            $(e.target).triggerHandler('success');
+            location.reload()
+        } else {
+            $(e.target).triggerHandler('error');
+            alert('失败');
+        }
+    });
+}
+
+
+function remove(e)
+{
+    var truthBeTold = window.confirm("是否确认删除");
+    if (truthBeTold) {
+    $.ajax({
+        url: '/platform/index/deleteapi',
+        type: 'POST',
+        data: {
+ 			id:$(e.target).parent().attr('data-id')
+        }
+    }).done(function(msg){
+   	 if (msg.status == 0) {
+         $(e.target).triggerHandler('success');
+         location.reload()
+     } else {
+         $(e.target).triggerHandler('error');
+         alert('失败');
+     }
+    });
+    }
+}
+
+function setCreate(e){
+	$('#edit_title').text('创建');
+	$('#api_id').val('');
+	$('#api_name').val('');
+	$('#api_route').val('');
+	$('#type').val(0);
+}
+
+function setEdit(e){
+        var sid=$(e.target).parent().attr('data-id');
+        var type_id = $(e.target).parent().attr('data-type-id');
+    var is_cache = $(e.target).parent().attr('data-is_cache');
+    var is_list_cache = $(e.target).parent().attr('data-is_list_cache');
+    var cache_time = $(e.target).parent().parent().children('.cache_time').text();
+
+	$('#api_name').val($(e.target).parent().parent().children('.name').text());
+	$('#api_route').val($(e.target).parent().parent().children('.route').text());
+    $('#cache_name').val($(e.target).parent().parent().children('.cache_name').text());
+
+    // remove all selected status
+    $('#type option').removeAttr('selected');
+    $('#is_cache option').removeAttr('selected');
+    $('#is_list_cache option').removeAttr('selected');
+	$('#type option[value=' + type_id + ']').prop('selected', true);
+    $('#is_cache option[value=' + is_cache + ']').prop('selected', true);
+    $('#is_list_cache option[value=' + is_list_cache + ']').prop('selected', true);
+
+    var select = document.getElementById("cache_time");
+    for(var i=0; i<select.options.length; i++){
+        if(select.options[i].innerHTML == cache_time){
+            select.options[i].selected = true;
+            break;
+        }
+    }
+    $('#edit_title').text('编辑API');
+	$('#api_id').val(sid);
+}
+
+function enter(e){
+	var sid=$(e.target).parent().attr('data-id');
+	location.href ='/platform/index/param?apiId='+sid;
+}
+
+
+$(function(){
+
+    $('.create').each(function(){
+        $(this).bind('click', setCreate);
+    });
+
+    $('.edit').each(function(){
+        $(this).bind('click', setEdit);
+    });
+
+    $('.remove').each(function(){
+        $(this).bind('click', remove);
+    });
+
+    $('.enter').each(function(){
+        $(this).bind('click', enter);
+    });
+
+    $('#sb').bind('click',create);
+
+});
+</script>

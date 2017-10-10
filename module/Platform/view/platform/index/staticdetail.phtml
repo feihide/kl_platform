@@ -1,0 +1,99 @@
+<div class="row">
+    <div class="col-md-12">
+        <h2>
+            <a href="" onclick = "history.go(-1)">返回上一页</a>
+          <?php use Zend\Form\Element;
+
+            $method = $_GET['method']?$_GET['method']:'get';
+            $period = $_GET['period']?$_GET['period']:0;
+            $route = $_GET['route'];
+
+
+            $url='/platform/index/staticdetail?route='.$route.'&mothod='.$method;
+
+            $element = new Element\Select('api_time');
+            $element->setValueOptions(array('一个月内','一周内', '全部'))->setAttribute('id', 'api_time')->setAttribute('value',$period);
+            echo $this->formSelect($element);
+            echo '</br>  请求方式['.$method.']';
+            echo '请求api['.$route.']<br/>';
+
+            ?>
+        </h2>
+        <h3>总请求数：<?php echo $this->data['num'];?></h3>
+        <div class="cl-sidebar">
+            <div class="row" style="background-color: #EEEEEE">
+                <div class="col-md-1"><strong>请求时间</strong></div>
+                <div class="col-md-3">API</div>
+                <div class="col-md-3">请求参数</div>
+                <div class="col-md-3">请求来源页面</div>
+                <div class="col-md-1">耗时</div>
+                <div class="col-md-1">重现请求</div>
+            </div>
+            <?php
+            $i = ($page -1)*10 +1;
+            if(!empty($this->data['list'])){
+                foreach($this->data['list'] as $item){?>
+                    <div class="row" style="background-color: #CCEEEF;margin-top:5px">
+                        <div class="col-md-1  module" ><?php echo date('Y-m-d H:i:s',$item['request_time']);?></div>
+                        <div class="col-md-3 intro"><?php echo $item['request_api'];?></div>
+                        <div class="col-md-3 intro"><?php unset($item['request_params']['api_log']); print_r($item['request_params']);?></div>
+                        <div class="col-md-3 intro"><?php echo $item['request_uri'];?></div>
+                        <div class="col-md-1"><?php echo round($item['used_time'],5);?></div>
+                        <div class="col-md-1" data-id="">
+                         <button type="button" class="btn btn-default  enter" ><span class="glyphicon glyphicon-log-in"></span></button>
+                        </div>
+                    </div>
+                <?php
+                $i++;
+                } ?>
+                <ul class="pagination">
+                    <li><a href="<?echo $url;?>page=1">&laquo;</a></li>
+                    <?php
+                    $page=$this->data['num']/20;
+                    if($page > intval($page))
+                        $page=intval($page)+1;
+                    else
+                        $page=intval($page);
+
+                    $i = $this->page-5;
+
+                    if($i<0) $i=1;
+                    $limit = $page;
+                    if($limit - $i>5){
+                        $limit = $i+5;
+                    }
+
+                    for($i;$i<=$limit;$i++){
+                        echo "<li ";
+                        if($i==$this->page) echo 'class="active"';
+                        echo '><a href="'.$url.'&page='.$i.'">'.$i.'</a></li>';
+                    }
+                    echo '<li><a href="'.$url.'&page='.$page.'">&raquo;</a></li>';
+                    ?>
+
+                </ul>
+            <?php }?>
+
+        </div>
+    </div>
+
+</div>
+<script>
+    function enter(e){
+        var url='/platform/index/index?module=<?php echo $this->apiData['module_id'];?>&api=<?php echo $this->apiData['id'];?>';
+        location.href =url;
+    }
+    function cc(){
+        //alert('11');
+        location.href ='<?php echo $url;?>&period='+$('#api_time').val(); }
+
+    $(document).ready(function(){
+        $('.enter').each(function(){
+            $(this).bind('click', enter);
+        });
+        $('#api_time').change( cc);
+    });
+
+
+
+</script>

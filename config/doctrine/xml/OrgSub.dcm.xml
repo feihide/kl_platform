@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+  <entity name="OrgSub" table="org_sub">
+    <indexes>
+      <index name="fk_org_sub_org_group1_idx" columns="org_group_id"/>
+    </indexes>
+    <id name="passportId" type="integer" column="passport_id">
+      <generator strategy="IDENTITY"/>
+    </id>
+    <many-to-one field="orgGroup" target-entity="OrgGroup">
+      <join-columns>
+        <join-column name="org_group_id" referenced-column-name="id"/>
+      </join-columns>
+    </many-to-one>
+  </entity>
+</doctrine-mapping>

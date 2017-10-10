@@ -1,0 +1,95 @@
+
+<?php echo $this->headLink()->appendStylesheet($this->basePath() . '/assets/css/jquery.fancybox.css'); ?>
+<!-- Scripts -->
+<?php echo $this->headScript()->appendFile($this->basePath() . '/assets/jquery/jquery.fancybox.js'); ?>
+<div class="row">
+    <div class="col-md-12">
+        <h2>请求方式 <?php use Zend\Form\Element;
+
+            $method = $_GET['method']?$_GET['method']:'';
+            $period = $_GET['period']?$_GET['period']:0;
+            $url='/platform/index/error?mothod='.$method;
+
+            $element = new Element\Select('api_time');
+            $element->setValueOptions(array('一个月内','一周内', '全部'))->setAttribute('id', 'api_time')->setAttribute('value',$period);
+            echo $this->formSelect($element);
+
+            $element = new Element\Select('module');
+            $element->setValueOptions(array(''=>'全部','get'=>'get','post'=>'post','put'=>'put','delete'=>'delete'))->setAttribute('id', 'module')->setAttribute('value',$_GET['method']);
+            echo $this->formSelect($element);
+            ?>
+        </h2>
+        <h3>总数：<?php echo $this->data['num'];?></h3>
+        <div class="cl-sidebar">
+            <div class="row" style="background-color: #EEEEEE">
+                <div class="col-md-1"><strong>请求时间</strong></div>
+                <div class="col-md-2">API</div>
+                <div class="col-md-2">请求参数</div>
+                <div class="col-md-2">请求页面</div>
+                <div class="col-md-2">报错信息</div>
+                <div class="col-md-1">查看调用日志</div>
+            </div>
+            <?php
+            $i = ($page -1)*10 +1;
+            if(!empty($this->data['list'])){
+                foreach($this->data['list'] as $item){?>
+                    <div class="row" style="background-color: #CCEEEF;margin-top:5px">
+                        <div class="col-md-1  module" ><?php echo date('Y-m-d H:i:s',$item['ctime']);?></div>
+                        <div class="col-md-2 intro"><?php echo $item['request_api'];?></div>
+                        <div class="col-md-2 intro">  <?php print_r($item['request_params']);?></div>
+                        <div class="col-md-2 intro">  <?php echo $item['request_uri'];?></div>
+                        <div class="col-md-2 intro"><a class="fancybox" href="#error_in<?php echo $i;?>" title="错误信息">查看报错</a></div>
+                            <div id="error_in<?php echo $i;?>" style="width:700px;display: none;">
+                                <h3>错误信息</h3>
+                                <code><pre><?php echo htmlspecialchars($item['response']);?></pre></code>
+                            </div>
+                        <div class="col-md-1" data-id="<?php echo $item['request_api'];?>">
+                         <button type="button" class="btn btn-default  enter" ><span class="glyphicon glyphicon-log-in"></span></button>
+
+                        </div>
+                    </div>
+                <?php
+                $i++;
+                } ?>
+                <ul class="pagination">
+                    <li><a href="<?echo $url;?>page=1">&laquo;</a></li>
+                    <?php
+                    $page=$this->data['num']/20;
+                    if($page > intval($page))
+                        $page=intval($page)+1;
+                    else
+                        $page=intval($page);
+
+                    for($i=1;$i<=$page;$i++){
+                        echo "<li ";
+                        if($i==$this->page) echo 'class="active"';
+                        echo '><a href="'.$url.'&page='.$i.'">'.$i.'</a></li>';
+                    }
+                    echo '<li><a href="'.$url.'&page='.$page.'">&raquo;</a></li>';
+                    ?>
+
+                </ul>
+            <?php }?>
+
+        </div>
+    </div>
+
+</div>
+<script>
+    function enter(e){
+        var sid=$(e.target).parent().attr('data-id');
+        var url='/platform/index/staticdetail?route='+sid+'&method=<?php echo $method;?>';
+
+        location.href =url;
+    }
+
+    $(document).ready(function(){
+            $('.fancybox').fancybox();
+
+        });
+
+    function cc(){location.href ='/platform/index/error?method='+$('#module').val()+'&period='+$('#api_time').val(); }
+
+    $('#module').change( cc);
+    $('#api_time').change( cc);
+</script>

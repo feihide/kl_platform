@@ -1,0 +1,10 @@
+#svn
+
+##本地新建目录
+- trunk/data/cacahe 
+  权限 777
+
+##忽略目录
+- trunk/config/autoload/local.php
+- trunk/config/autoload/zft.local.php
+- trunk/data

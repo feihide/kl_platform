@@ -1,0 +1,28 @@
+OrgHasServiceType:
+    type: entity
+    table: org_has_service_type
+    id: {  }
+    fields:
+        serviceTypeId:
+            type: integer
+            nullable: false
+            unsigned: true
+            comment: ''
+            column: service_type_id
+        serviceNum:
+            type: integer
+            nullable: false
+            unsigned: true
+            comment: ''
+            column: service_num
+    oneToOne:
+        passport:
+            targetEntity: Org
+            cascade: {  }
+            mappedBy: null
+            inversedBy: null
+            joinColumns:
+                passport_id:
+                    referencedColumnName: passport_id
+            orphanRemoval: false
+    lifecycleCallbacks: {  }

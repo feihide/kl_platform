@@ -1,0 +1,54 @@
+<div class="row">
+                    <div class="col-md-12">
+                    <h2> <a href="/platform/index/console" >返回console列表</a>
+                         |  当前 <?php echo $request['controller'].'/'.$request['action'];?>
+                    </h2>
+                        <div class="cl-sidebar">
+                        		<div class="row" style="background-color: #EEEEEE">
+                        			 <div class="col-md-1"><strong>ID</strong></div>
+                        			 <div class="col-md-1">controller</div>
+                        			 <div class="col-md-1">action</div>
+                                    <div class="col-md-7">内容</div>
+                                    <div class="col-md-1">结果</div>
+                                    <div class="col-md-1">生成时间</div>
+
+                        		</div>
+                        		<?php 
+
+                                $is =array('fail','success');
+                        		 
+                        		 if(!empty($list)){
+                        						foreach($list as $item){?>
+											<div class="row" style="background-color: #CCEEEF;margin-top:5px">
+<div class="col-md-1 name" ><?php echo $item['id'];?></div>
+<div class="col-md-1  route"><?php echo $item['controller'];?></div>
+<div class="col-md-1 type"><?php echo $item['action'];?></div>
+<div class="col-md-7 type"><?php echo $item['content'];?></div>
+<div class="col-md-1 type"><?php echo $is[$item['success']];?></div>
+<div class="col-md-1"><?php echo date('Y-m-d H:i:s',$item['ctime']);?></div>
+
+</div>
+                        	<?php } ?>
+                        		<ul class="pagination">
+								  <li><a href="<?php echo $url;?>page=1">&laquo;</a></li>
+								  <?php 
+								  $page=$num/20;
+								  if($page > intval($page))
+								 	 $page=intval($page)+1;
+								  else
+								    $page=intval($page);
+								  for($i=1;$i<=$page;$i++){
+									echo "<li ";
+									if($i==$this->request['page']) echo 'class="active"';
+									echo '><a href="'.$url.'page='.$i.'">'.$i.'</a></li>';
+								}
+								echo '<li><a href="'.$url.'page='.$page.'">&raquo;</a></li>';
+								?>
+								
+								</ul>
+                        		<?php }?>
+                        		
+                        </div>
+                    </div>
+</div>
+

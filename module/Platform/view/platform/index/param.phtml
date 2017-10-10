@@ -1,0 +1,172 @@
+
+                <div class="row">
+                    <div class="col-md-8">
+                    <h2>  <a href="/platform/index/api?moduleId=<?php echo $this->api['module_id'];?>" >返回API列表</a>
+                    	<?php
+                    	use Zend\Form\Element;
+                    	$url='/platform/index/param?apiId='.$this->request['apiId'].'&';
+                    	if(isset($this->request['apiId'])) echo "API参数列表:[ {$this->api['name']} ] ".'   '.$this->api['route'];?>
+                        <a target="_blank" href="/platform/index/index?module=<?php echo $this->api['module_id'];?>&api=<?php echo $this->request['apiId'];?>" >进入测试</a>
+                    </h2>
+                        <div class="cl-sidebar">
+                        		<div class="row" style="background-color: #EEEEEE">
+                        			 <div class="col-md-2"><strong>参数名</strong></div>
+                        			 <div class="col-md-5">说明</div>
+                        			 <div class="col-md-1">空</div>
+                        			 <div class="col-md-4">操作</div>
+                        		</div>
+                        		<?php 
+                        		$moduleType=array(
+                        				'0' => '否',
+                        				'1' => '是',
+                        		);
+                        		 
+                        		 if(!empty($this->data)){
+                        						foreach($this->data as $item){?>
+											<div class="row" style="background-color: #CCEEEF;margin-top:5px">
+<div class="col-md-2 name" ><?php echo $item['name'];?></div>
+<div class="col-md-5  intro"><?php echo $item['intro'];?></div>
+<div class="col-md-1 can_empty" data-id=<?php echo $item['can_empty']; ?>><?php echo $moduleType[$item['can_empty']];?></div>
+<div class="col-md-4" data-id="<?php echo $item['id'];?>">
+<button type="button" class="btn btn-default create" ><span class="glyphicon glyphicon-plus"></span></button>
+<button type="button" class="btn btn-default edit" ><span class="glyphicon glyphicon-edit"></span></button>    
+<button type="button" class="btn btn-default  remove" ><span class="glyphicon glyphicon-remove"></span></button>
+</div>
+</div>
+                        	<?php } ?>
+                        		<ul class="pagination">
+								  <li><a href="<?echo $url;?>page=1">&laquo;</a></li>
+								  <?php 
+								   $page=$this->num/100;
+								  if($page > intval($page))
+								 	 $page=intval($page)+1;
+								  else
+								    $page=intval($page);
+								  
+								  for($i=1;$i<=$page;$i++){
+									echo "<li ";
+									if($i==$this->request['page']) echo 'class="active"';
+									echo '><a href="'.$url.'page='.$i.'">'.$i.'</a></li>';
+								}
+								echo '<li><a href="'.$url.'page='.$page.'">&raquo;</a></li>';
+								?>
+								
+								</ul>
+                        		<?php }?>
+                        		
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+							<div class="container">
+									<div class="container">
+ <form class="form-signin">
+        <h2 class="form-signin-heading" id='edit_title'>创建</h2>
+        <input type="hidden" value=''  id="param_id"/>
+        <input type="hidden" value='<?php echo $this->request['apiId'];?>'  id="api_id"/>
+        <input type="text"  id="name" size="200" class="form-control" placeholder="参数名" required autofocus>
+        <input type="text" id="intro"   size="200"  class="form-control"  placeholder="说明"  required autofocus>
+        空:<?php 
+       
+$element = new Element\Select('can_empty');
+$element->setValueOptions($moduleType)->setAttribute('id', 'can_empty');
+echo $this->formSelect($element);
+?>
+        <button class="btn btn-lg btn-primary btn-block" type="button" id="sb">提交</button>
+      </form>
+     
+
+    </div>
+							</div>
+                    </div>
+                </div>
+<script>
+
+/**
+ * 添加机构
+ */
+function create(e)
+{
+    $.ajax({
+        url: '/platform/index/createparam',
+        type: 'POST',
+        data: {
+            api_id: $('#api_id').val(),
+         	name:$('#name').val(),
+           	intro:$('#intro').val(),
+        	can_empty:$('#can_empty').val(),
+           	id:$('#param_id').val(),
+        }
+    }).done(function(msg){
+        if (msg.status == 0) {
+            $(e.target).triggerHandler('success');
+            location.reload() 
+        } else {
+            $(e.target).triggerHandler('error');
+            alert('失败');
+        }
+    });
+}
+
+
+function remove(e)
+{
+    var truthBeTold = window.confirm("是否确认删除");
+    if (truthBeTold) {
+    $.ajax({
+        url: '/platform/index/deleteparam',
+        type: 'POST',
+        data: {
+ 			id:$(e.target).parent().attr('data-id')           
+        }
+    }).done(function(msg){
+   	 if (msg.status == 0) {
+         $(e.target).triggerHandler('success');
+         location.reload() 
+     } else {
+         $(e.target).triggerHandler('error');
+         alert('失败');
+     }
+    });
+    }
+}
+
+function setCreate(e){
+	$('#edit_title').text('创建');
+	$('#param_id').val('');
+	$('#name').val('');
+	$('#intro').val('');
+	$('#can_empty').val(0);
+}
+
+function setEdit(e){
+	var sid=$(e.target).parent().attr('data-id');
+	$('#name').val($(e.target).parent().parent().children('.name').text());
+	$('#intro').val($(e.target).parent().parent().children('.intro').text());
+	$('#can_empty').val($(e.target).parent().parent().children('.can_empty').attr('data-id'));
+	$('#edit_title').text('编辑参数');
+	$('#param_id').val(sid);
+}
+
+
+$(function(){
+
+    $('.create').each(function(){
+        $(this).bind('click', setCreate);
+    });
+
+    $('.edit').each(function(){
+        $(this).bind('click', setEdit);
+    });
+
+    $('.remove').each(function(){
+        $(this).bind('click', remove);
+    });
+
+    $('.enter').each(function(){
+        $(this).bind('click', enter);
+    });
+
+    $('#sb').bind('click',create);
+	
+});
+</script>

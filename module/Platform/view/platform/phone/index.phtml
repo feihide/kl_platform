@@ -1,0 +1,202 @@
+           <div class="row">
+                    <div class="col-md-5">
+                        <div class="cl-sidebar">
+                            <div class="row">
+                                <div class="col-md-10" style="margin-top: 10px"><span>accessToken:</span><span id="access_token"><?php echo $_GET['access_token']; ?></span></div>
+                                <div ><button id="clear">刷新accessToken</button></div>
+                            </div>
+                            <div class="row">
+                                当前使用API
+                                <input value ="<?php echo $apihost; ?>" id="apihost">
+                                <button id="changeapi">变更API</button>
+                              </div>
+                              <div class="row">
+                                请求orgin设置
+                                <input value ="<?php echo $orgin; ?>" id="orgin">
+                                <button id="changeorgin">变更来源</button>
+                                如果使用自己本地API，请设置完后与运维联系在服务器绑定你的域名或直接通过IP请求
+                            </div>
+                        <div class="row">
+                        <div class="col-md-10" style="margin-top: 10px"><h3>选择模块</h3></div><div class="col-md-10">
+<?php use Zend\Form\Element;
+
+$element = new Element\Select('module');
+$element->setValueOptions($this->module)->setAttribute('id', 'module')->setAttribute('value', $this->request['module']);
+echo $this->formSelect($element);
+?>
+</div></div><div class="row">
+ <div class="col-md-10"  style="margin-top: 10px"><h3>选择API</h3></div><div class="col-md-10">
+<?php
+$element = new Element\Select('api');
+$element->setValueOptions($this->api)->setAttribute('id', 'api')->setAttribute('value', $this->request['api']);
+echo $this->formSelect($element);
+?></div><hr/>
+</div>
+
+ <?php
+ $moduleType = array(
+        '0' => 'GET',
+        '1' => 'POST',
+        '2' => 'PUT',
+        '3' => 'DELETE',
+ );
+
+ $roleType = array(
+         '0' => '后台开放',
+         '1' => '前台开放',
+         '2' => '用户开放',
+         '3' => '平台开放',
+         '4' => '第三方开放',
+ );
+ $field = $requiredField = array();
+
+ echo '<div class="col-md-10" style="margin-top: 5px"><strong>接口说明:</strong><em>'.$this->currentApi['info'].'</em></div>';
+ echo '<div class="col-md-10" style="margin-top: 5px"><strong>缓存时间:</strong><em>'.($this->currentApi['cache'] ? $this->currentApi['cache'].'秒' : '无').'</em></div>';
+ echo '<div class="col-md-10" style="margin-top: 5px"><strong>请求路由：</strong><em id="api_route">'.$this->currentApi['route'].'</em></div>';
+ echo '<div class="col-md-10" style="margin-top: 5px"><strong><a href="/platform/phone/detail?route='.substr($this->currentApi['route'], 1).'"> 查看请求日志</a></strong></div>';
+ echo '<div class="col-md-10" style="margin-top: 5px"><strong>请求方式：</strong><em id="api_request_type">'.$moduleType[$this->currentApi['type']].'</em></div>';
+  if (!empty($this->param)) {
+      echo  '<div class="col-md-10" style="margin-top: 5px"><strong>请求参数</strong></div>';
+
+      foreach ($this->param as $item) {
+          $field[] = $item['name'];
+          $empty = '';
+          $required = 'required=""';
+          if (!$item['can_empty']) {
+              $required = "required='required'";
+              $empty = '<strong style="color:red">*</strong>';
+              $requiredField[] = $item['name'];
+          } else {
+              //设置该值不传
+       $empty = '<br/>不提交该参数:<input name="not_pass" type="checkbox" value="'.$item['name'].'"></input>';
+          }
+          $itemValue = '';
+          if ($item['name'] == 'grant_type') {
+              $itemValue = 'client_credentials';
+          }
+          echo '<div class="col-md-10" style="margin-top: 5px">[ <strong>'.$item['name'].'</strong>]
+     :<input id="'.$item['name'].'"  '.$required.'  type="text"  value="'.$itemValue.'" />'.$empty.
+    '<br/>描述：'.$item['intro'].'</div>';
+      }
+  }
+ echo ' <div class="col-md-10" style="margin-top: 10px"><button class="btn btn-lg btn-primary btn-block" type="button" id="sb">提交</button></div>';
+?>
+
+                        </div>
+                    </div>
+
+                    <div class="col-md-7">
+
+
+								<div>请求URL:</div><div class="span8"  id="response_url"></div>
+
+							<hr/>
+
+								<h3>实际解析后数据</h3>
+								<div   id="response_json"></div>
+								<hr/>
+									<h3>实际响应体</h3>
+									<div class="row" ><div class="col-md-12" style="word-wrap:break-word"><PRE  id="response_content" ></PRE></div></div>
+                  <hr/>
+                    <h3>响应格式范例</h3>
+                    <div class="row" ><div class="col-md-12" style="word-wrap:break-word"><PRE  id="test_content" ><?php echo $this->currentApi['response']; ?></PRE></div></div>
+
+
+            	</div>
+
+
+                </div>
+<script>
+var module='<?php echo $this->request['module']; ?>';
+var api='<?php echo $this->request['api']; ?>';
+var field='<?php echo implode(',', $field); ?>'.split(',');
+var require_field='<?php echo implode(',', $requiredField); ?>'.split(',')
+
+$('#clear').click(function(){
+    $('#access_token').html('');
+})
+
+function request(){
+	var not_pass=''
+    var result=0
+	var url=$('#api_route').text();
+	data={}
+	//必填项判断
+	$.each(require_field,function(k,v){
+		if(v){
+    		if(!$('input[id="'+v+'"]').val()){
+    			alert(v+'不能为空');
+    			result=-1;
+    		}
+		}
+	})
+
+	$("input[name='not_pass']:checked").each(function(){
+                    not_pass += $(this).val()+","
+     })
+    not_pass=not_pass.split(",");
+
+	//匹配URL
+	$.each(field,function(k,v){
+		    if($.inArray(v,not_pass)==-1){
+		    	  data[v]=$('input[id="'+v+'"]').val()
+		    }
+	})
+    data['access_token']  = $('#access_token').html();
+
+    if(result==-1)
+    	return false;
+
+	var request_type=
+	  $.ajax({
+	        url: '/platform/phone/test',
+	        type: 'POST',
+	        data:{
+	        	api_route:url,
+	        	request_type:$('#api_request_type').text(),
+	        	param: data
+		    }
+	    }).done(function(msg){
+	        if (msg.status == 0) {
+	            $('#response_content').text(msg.data);
+	            $('#response_json').html(msg.json);
+                if(msg.accessToken){
+                    $('#access_token').html(msg.accessToken);
+                }
+	            $('#response_url').text(msg.url);
+	        } else {
+
+	            alert('失败');
+	        }
+	    });
+}
+
+$('#changeapi').click(function(){
+    $.ajax({
+        url: '/platform/phone/change',
+        type: 'POST',
+        data:{
+            apihost: $('#apihost').val()
+        }
+    }).done(function(msg){
+            alert('変更成功');
+        });
+})
+$('#changeorgin').click(function(){
+    $.ajax({
+        url: '/platform/phone/change',
+        type: 'POST',
+        data:{
+            orgin: $('#orgin').val()
+        }
+    }).done(function(msg){
+            alert('変更成功');
+        });
+})
+
+$(function(){
+        $('#module').change(function(){location.href ='/platform/phone/index?module='+$('#module').val()+'&access_token='+$('#access_token').html(); });
+        $('#api').change(function(){location.href ='/platform/phone/index?module='+module+'&api='+$('#api').val()+'&access_token='+$('#access_token').html(); });
+        $('#sb').bind('click',request);
+});
+</script>

@@ -1,0 +1,99 @@
+<div class="row">
+    <div class="col-md-12">
+        <h2>请求接口:
+            <?php
+            echo $r = $_GET['route'];
+$url='/platform/phone/detail?route='.$r;
+            ?>
+
+        </h2>
+        <h3>总数：<?php echo $this->num;?></h3>
+        <div class="cl-sidebar">
+            <div class="row" style="background-color: #EEEEEE">
+                <div class="col-md-2"><strong>时间</strong></div>
+                <div class="col-md-4">请求数据</div>
+                <div class="col-md-5">返回数据</div>
+                <div class="col-md-1">操作</div>
+            </div>
+            <?php
+            $i = ($page -1)*10 +1;
+            if(!empty($this->list)){
+                foreach($this->list as $item){
+
+                    ?>
+                    <div class="row" style="background-color: #CCEEEF;margin-top:5px">
+                        <div class="col-md-2  module" ><?php echo $item['ctime'];?></div>
+                        <div class="col-md-4 intro"><pre><?php echo print_r($item['request'],true);?></pre></div>
+
+                        <div class="col-md-5"><pre class="showcode" data="<?php echo print_r($item['response'],true);?>">查看详情</pre></div>
+                        <div class = "col-md-1" data-id="<?php echo $item['_id'];?>">   <button type="button" class="btn btn-default  remove" ><span class="glyphicon glyphicon-remove"></span></button>
+                        </div>
+                    </div>
+                    <?php
+                    $i++;
+                } ?>
+                <ul class="pagination">
+                    <li><a href="<?echo $url;?>page=1">&laquo;</a></li>
+                    <?php
+                    $page=$this->num/20;
+                    if($page > intval($page))
+                        $page=intval($page)+1;
+                    else
+                        $page=intval($page);
+
+                    for($i=1;$i<=$page;$i++){
+                        if($i==1 || $i==$page || ($i<$this->page+10 && $i>$this->page-10)){
+
+                            echo "<li ";
+                            if($i==$this->page) echo 'class="active"';
+                            echo '><a href="'.$url.'&page='.$i.'">'.$i.'</a></li>';
+                        }
+                    }
+                    echo '<li><a href="'.$url.'&page='.$page.'">&raquo;</a></li>';
+                    ?>
+
+                </ul>
+            <?php }?>
+
+        </div>
+    </div>
+
+</div>
+<script>
+    $('.showcode').each(function(){
+        $(this).bind('click', showCode);
+    });
+
+    function showCode(e){
+        var s='查看详情';
+        if($(e.target).text()==s){
+
+            $(e.target).text($(e.target).attr('data'));
+        }
+        else{
+            $(e.target).text(s);
+        }
+    }
+
+    function remove(e)
+    {
+        var truthBeTold = window.confirm("是否确认删除");
+        if (truthBeTold) {
+            $.ajax({
+                url: '/platform/debug/delete',
+                type: 'POST',
+                data: {
+                    id:$(e.target).parent().attr('data-id')
+                }
+            }).done(function(msg){
+                if (msg.status == 0) {
+                    $(e.target).triggerHandler('success');
+                    location.reload()
+                } else {
+                    $(e.target).triggerHandler('error');
+                    alert('失败');
+                }
+            });
+        }
+    }
+</script>

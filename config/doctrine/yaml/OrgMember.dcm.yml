@@ -1,0 +1,36 @@
+OrgMember:
+    type: entity
+    table: org_member
+    indexes:
+        fk_org_user_org_user_group1_idx:
+            columns:
+                - org_member_group_id
+    id:
+        passportId:
+            type: integer
+            nullable: false
+            unsigned: true
+            comment: ''
+            id: true
+            column: passport_id
+            generator:
+                strategy: IDENTITY
+    fields:
+        departmentName:
+            type: string
+            nullable: false
+            length: 45
+            fixed: false
+            comment: ''
+            column: department_name
+    manyToOne:
+        orgMemberGroup:
+            targetEntity: OrgMemberGroup
+            cascade: {  }
+            mappedBy: null
+            inversedBy: null
+            joinColumns:
+                org_member_group_id:
+                    referencedColumnName: id
+            orphanRemoval: false
+    lifecycleCallbacks: {  }
