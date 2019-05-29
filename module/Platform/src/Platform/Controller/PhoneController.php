@@ -41,7 +41,6 @@ class PhoneController extends BaseActionController
         else{
           $searchCond=' and 1';
         }
-        echo $searchCond;
 
         $api = array('' => '请选择');
         if (isset($request['module']) && !empty($request['module'])) {
