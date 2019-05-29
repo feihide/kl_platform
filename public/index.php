@@ -1,7 +1,7 @@
 <?php
     error_reporting(0);
     ini_set('display_errors','on');
-//  error_reporting(E_ALL);
+//error_reporting(E_ALL);
 
 chdir(dirname(__DIR__));
 //error_reporting(E_ALL);
@@ -11,10 +11,10 @@ if (php_sapi_name() === 'cli-server' && is_file(__DIR__ . parse_url($_SERVER['RE
     return false;
 }
 
-if($_SERVER['HTTP_HOST'] =='t.kunlunhealth.com.cn'){
+if($_SERVER['HTTP_HOST'] =='t.kunlunhealth.com.cn' || 1){
 
 define('ADMIN_USERNAME','kl'); 	// Admin Username
-define('ADMIN_PASSWORD','kaimenba');  	// Admin Password
+define('ADMIN_PASSWORD','zhimakaimen');  	// Admin Password
 define('DATE_FORMAT','Y/m/d H:i:s');
 
 if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW']) ||

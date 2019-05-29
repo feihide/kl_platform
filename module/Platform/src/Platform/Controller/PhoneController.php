@@ -15,6 +15,7 @@ class PhoneController extends BaseActionController
         '2' => '用户开放',
         '3' => '平台开放',
         '4' => '第三方开放',
+        '5' => '代理开放',
       );
         $request = $this->getRequest()->getQuery()->toArray();
         $moduleData = $this->getDao('platform', 'modulePhone')->getList('is_delete=0', 1, 100, 'module asc');
