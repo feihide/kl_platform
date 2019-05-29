@@ -16,15 +16,44 @@
                                 <button id="changeorgin">变更来源</button>
                                 如果使用自己本地API，请设置完后与运维联系在服务器绑定你的域名或直接通过IP请求
                             </div>
-                        <div class="row">
-                        <div class="col-md-10" style="margin-top: 10px"><h3>选择模块</h3></div><div class="col-md-10">
+                            <div class="row">
+                              <div class="col-md-10" style="margin-top: 10px"><h3>选择模块</h3></div><div class="col-md-10">
 <?php use Zend\Form\Element;
+$moduleType = array(
+       '0' => 'GET',
+       '1' => 'POST',
+       '2' => 'PUT',
+       '3' => 'DELETE',
+);
 
+$roleType = array(
+        ''=>'请选择',
+        '0' => '后台开放',
+        '1' => '前台开放',
+        '2' => '用户开放',
+        '3' => '平台开放',
+        '4' => '第三方开放',
+        '5' => '代理开放',
+);
 $element = new Element\Select('module');
 $element->setValueOptions($this->module)->setAttribute('id', 'module')->setAttribute('value', $this->request['module']);
 echo $this->formSelect($element);
 ?>
-</div></div><div class="row">
+</div></div>
+<div class="row">
+<div class="col-md-10" style="margin-top: 10px"><h3>按名称搜索</h3></div><div class="col-md-10">
+  <input id='search' value ="<?php echo $search; ?>"  type="text"><button id ='search_bt'>确认</button><button id ='search_clear'>清除</button>
+</div></div>
+
+<div class="row">
+<div class="col-md-10" style="margin-top: 10px"><h3>选择开放类型</h3></div><div class="col-md-10">
+<?php
+$element = new Element\Select('role');
+$element->setValueOptions($roleType)->setAttribute('id', 'role')->setAttribute('value', $this->request['role']);
+echo $this->formSelect($element);
+ ?>
+</div></div>
+<div class="row">
  <div class="col-md-10"  style="margin-top: 10px"><h3>选择API</h3></div><div class="col-md-10">
 <?php
 $element = new Element\Select('api');
@@ -33,22 +62,8 @@ echo $this->formSelect($element);
 ?></div><hr/>
 </div>
 
- <?php
- $moduleType = array(
-        '0' => 'GET',
-        '1' => 'POST',
-        '2' => 'PUT',
-        '3' => 'DELETE',
- );
 
- $roleType = array(
-         '0' => '后台开放',
-         '1' => '前台开放',
-         '2' => '用户开放',
-         '3' => '平台开放',
-         '4' => '第三方开放',
-         '5' => '代理开放',
- );
+ <?php
  $field = $requiredField = array();
 
  echo '<div class="col-md-10" style="margin-top: 5px"><strong>接口说明:</strong><em>'.$this->currentApi['info'].'</em></div>';
@@ -110,6 +125,9 @@ echo $this->formSelect($element);
                 </div>
 <script>
 var module='<?php echo $this->request['module']; ?>';
+var role='<?php echo $this->request['role']; ?>';
+var search='<?php echo $this->request['search']; ?>';
+
 var api='<?php echo $this->request['api']; ?>';
 var field='<?php echo implode(',', $field); ?>'.split(',');
 var require_field='<?php echo implode(',', $requiredField); ?>'.split(',')
@@ -118,6 +136,9 @@ $('#clear').click(function(){
     $('#access_token').html('');
 })
 
+$('#search_clear').click(function(){
+    $('#search').val('');
+})
 function request(){
 	var not_pass=''
     var result=0
@@ -197,9 +218,15 @@ $('#changeorgin').click(function(){
         });
 })
 
+
+
 $(function(){
-        $('#module').change(function(){location.href ='/platform/phone/index?module='+$('#module').val()+'&access_token='+$('#access_token').html(); });
-        $('#api').change(function(){location.href ='/platform/phone/index?module='+module+'&api='+$('#api').val()+'&access_token='+$('#access_token').html(); });
+        $('#module').change(function(){location.href ='/platform/phone/index?module='+$('#module').val()+'&role='+$('#role').val()+'&access_token='+$('#access_token').html(); });
+        $('#role').change(function(){location.href ='/platform/phone/index?module='+$('#module').val()+'&role='+$('#role').val()+'&access_token='+$('#access_token').html(); });
+        $('#api').change(function(){location.href ='/platform/phone/index?module='+module+'&role='+role+'&search='+search+'&api='+$('#api').val()+'&access_token='+$('#access_token').html(); });
+        $('#search_bt').click(function(){
+          location.href ='/platform/phone/index?module='+module+'&role='+role+'&search='+$('#search').val()+'&api='+$('#api').val()+'&access_token='+$('#access_token').html()
+        })
         $('#sb').bind('click',request);
 });
 </script>

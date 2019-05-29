@@ -24,9 +24,28 @@ class PhoneController extends BaseActionController
             $module[$item['id']] = $item['module'];
         }
         $currentApi = array();
+
+        $role = isset($request['role'])?$request['role']:'';
+        if($role!==''){
+          $roleCond = ' and role='.intval($role);
+        }
+        else{
+          $roleCond=' and 1';
+        }
+
+        $search = isset($request['search'])?$request['search']:'';
+
+        if($search!==''){
+          $searchCond = ' and name like"%'.$search.'%"';
+        }
+        else{
+          $searchCond=' and 1';
+        }
+        echo $searchCond;
+
         $api = array('' => '请选择');
         if (isset($request['module']) && !empty($request['module'])) {
-            $apiData = $this->getDao('platform', 'apiPhone')->getList('is_delete=0 and  module_id='.$request['module'], 1, 100, 'name asc');
+            $apiData = $this->getDao('platform', 'apiPhone')->getList('is_delete=0 and  module_id='.$request['module'].$roleCond.$searchCond, 1, 100, 'name asc');
             if (!empty($apiData)) {
                 foreach ($apiData as $item) {
                     if (isset($request['api']) && !empty($request['api'])) {
@@ -56,7 +75,7 @@ class PhoneController extends BaseActionController
             $apihost = $this->getServiceLocator()->get('cl_config')['params']['phone_api_domain'];
         }
 
-        return array('request' => $request, 'module' => $module, 'api' => $api, 'param' => $param, 'currentApi' => $currentApi, 'orgin' => $orgin, 'apihost' => $apihost);
+        return array('request' => $request,'search'=>$search,'role'=>$role, 'module' => $module, 'api' => $api, 'param' => $param, 'currentApi' => $currentApi, 'orgin' => $orgin, 'apihost' => $apihost);
     }
 
     public function changeAction()
@@ -261,10 +280,10 @@ class PhoneController extends BaseActionController
 
 
 function ecryptdString($str,$keys="6461772803150152",$iv="8105547186756005",$cipher_alg=MCRYPT_RIJNDAEL_128){
-$blocksize = mcrypt_get_block_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC);  
-$len = strlen($str); //取得字符串长度  
-$pad = $blocksize - ($len % $blocksize); //取得补码的长度  
-$str .= str_repeat(chr($pad), $pad); //用ASCII码为补码长度的字符， 补足最后一段  
+$blocksize = mcrypt_get_block_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC);
+$len = strlen($str); //取得字符串长度
+$pad = $blocksize - ($len % $blocksize); //取得补码的长度
+$str .= str_repeat(chr($pad), $pad); //用ASCII码为补码长度的字符， 补足最后一段
   $encrypted_string = base64_encode(mcrypt_encrypt($cipher_alg, $keys, $str, MCRYPT_MODE_CBC,$iv));
   return $encrypted_string;
 }

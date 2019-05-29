@@ -17,8 +17,16 @@ class IndexController extends BaseActionController
     	}
     	$currentApi=array();
     	$api=array(''=>'请选择');
+      $role = isset($request['role'])?$request['role']:'';
+      if($role!=''){
+        $roleCond = ' and role='.intval($role);
+      }
+      else{
+        $roleCond=' and 1';
+      }
+
     	if(isset($request['module'])&& !empty($request['module'])){
-    		$apiData=$this->getDao('platform','api')->getList('is_delete=0 and  module_id='.$request['module'],1,100,'name asc');
+    		$apiData=$this->getDao('platform','api')->getList('is_delete=0 and  module_id='.$request['module'].$roleCond,1,100,'name asc');
     		if(!empty($apiData)){
 
     			foreach ($apiData as $item){
@@ -64,7 +72,7 @@ class IndexController extends BaseActionController
             $op = 0;
         }
 
-        return array('request'=>$request,'module'=>$module,'api'=>$api,'param'=>$param,'currentApi'=>$currentApi,'apihost'=>$apihost,'op'=>$op,'platform'=>$platform);
+        return array('request'=>$request,'module'=>$module,'role'=>$role,'api'=>$api,'param'=>$param,'currentApi'=>$currentApi,'apihost'=>$apihost,'op'=>$op,'platform'=>$platform);
     }
 
     public function changeAction(){

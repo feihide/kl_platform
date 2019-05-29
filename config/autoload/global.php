@@ -184,10 +184,10 @@ return array(
                                             ),
                                                             'platform_server' => array(
                                             array(
-                                                    'host' => '192.168.0.146', // '192.168.0.254',
+                                                    'host' => '10.18.104.151', // '192.168.0.254',
                                                     'database' => 'kl_platform',
                                                      'username' => 'root',
-                                                     'password' => 'redhat',
+                                                     'password' => 'nightworld',
                                             ),
                                             ),
                                             'passport_server' => array(
