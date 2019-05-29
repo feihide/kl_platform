@@ -15,6 +15,7 @@ class PhoneController extends BaseActionController
         '2' => '用户开放',
         '3' => '平台开放',
         '4' => '第三方开放',
+        '5' => '代理开放',
       );
         $request = $this->getRequest()->getQuery()->toArray();
         $moduleData = $this->getDao('platform', 'modulePhone')->getList('is_delete=0', 1, 100, 'module asc');
@@ -258,6 +259,26 @@ class PhoneController extends BaseActionController
         return new JsonModel(array('status' => 0));
     }
 
+
+function ecryptdString($str,$keys="6461772803150152",$iv="8105547186756005",$cipher_alg=MCRYPT_RIJNDAEL_128){
+$blocksize = mcrypt_get_block_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC);  
+$len = strlen($str); //取得字符串长度  
+$pad = $blocksize - ($len % $blocksize); //取得补码的长度  
+$str .= str_repeat(chr($pad), $pad); //用ASCII码为补码长度的字符， 补足最后一段  
+  $encrypted_string = base64_encode(mcrypt_encrypt($cipher_alg, $keys, $str, MCRYPT_MODE_CBC,$iv));
+  return $encrypted_string;
+}
+/*
+* 实现AES解密
+* $str : 要解密的字符串
+* $keys : 加密密钥
+* $iv : 加密向量
+* $cipher_alg : 加密方式
+*/
+function decryptString($str,$keys="6461772803150152",$iv="8105547186756005",$cipher_alg=MCRYPT_RIJNDAEL_128){
+  $decrypted_string = mcrypt_decrypt($cipher_alg, $keys, pack("H*",$str),MCRYPT_MODE_CBC, $iv);
+  return $decrypted_string;
+}
     public function testAction()
     {
         $re = $this->getRequest()->getPost()->toArray();
@@ -279,16 +300,19 @@ class PhoneController extends BaseActionController
         } else {
             $apihost = $this->getServiceLocator()->get('cl_config')['params']['phone_api_domain'];
         }
-
         $url = $apihost.sprintf('%s?%s', $re['api_route'], http_build_query($param));
-        $info = $this->callPhoneAPI($re['request_type'], $re['api_route'], $param); //put数据
+        $time=time();
+        $encodeParam=array('encode_string'=>$this->ecryptdString(json_encode($param),'kun'.$time.'lun','1234567812345678'),'timestamp'=>$time);
+        $encodeUrl = $apihost.sprintf('%s?%s', $re['api_route'], http_build_query($encodeParam));
+        //$encodeUrl = $encodeParam['encode_string'];
+        $info = $this->callPhoneAPI($re['request_type'], $re['api_route'], $encodeParam); //put数据
          $re = json_decode($info, true);
         $accessToken = '';
         if (isset($re['data']['access_token']) && !empty($re['data']['access_token'])) {
             $accessToken = $re['data']['access_token'];
         }
 
-        return new JsonModel(array('status' => 0, 'data' => $info, 'url' => $url, 'accessToken' => $accessToken,  'json' => '<pre>'.print_r(json_decode($info, true), true).'</pre>'));
+        return new JsonModel(array('status' => 0, 'data' => $info, 'url' => $url,'encode_url'=>$encodeUrl, 'accessToken' => $accessToken,  'json' => '<pre>'.print_r(json_decode($info, true), true).'</pre>'));
     }
 
     public function callPhoneAPI($method, $url, $data = false)

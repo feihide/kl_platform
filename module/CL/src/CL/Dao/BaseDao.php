@@ -41,7 +41,7 @@ class BaseDao
 		$name=explode('\\',get_class($this));
 		$name=array_pop($name);
 
-        if($_COOKIE['apihost']){
+        if(isset($_COOKIE['apihost']) && $_COOKIE['apihost']){
            $this->apihost = $_COOKIE['apihost'];
         }
         else

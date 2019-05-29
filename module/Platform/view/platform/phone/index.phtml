@@ -47,6 +47,7 @@ echo $this->formSelect($element);
          '2' => '用户开放',
          '3' => '平台开放',
          '4' => '第三方开放',
+         '5' => '代理开放',
  );
  $field = $requiredField = array();
 
@@ -89,6 +90,7 @@ echo $this->formSelect($element);
 
 
 								<div>请求URL:</div><div class="span8"  id="response_url"></div>
+								<div>请求加密URL:</div><div class="span8"  id="response_encode_url"></div>
 
 							<hr/>
 
@@ -164,6 +166,7 @@ function request(){
                     $('#access_token').html(msg.accessToken);
                 }
 	            $('#response_url').text(msg.url);
+	            $('#response_encode_url').text(msg.encode_url);
 	        } else {
 
 	            alert('失败');
