@@ -1,6 +1,6 @@
 {
     "require": {
-        "zendframework/zendframework": "2.2.*",
+        "zendframework/zendframework": "2.4.*",
         "zendframework/zendoauth": "dev-master",
         "doctrine/doctrine-module": "0.8.*@dev",
         "bshaffer/oauth2-server-php": "dev-develop",
